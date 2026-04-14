@@ -29,7 +29,9 @@ def load_users():
 
 # ---------------- MediaPipe ----------------
 mp_face_mesh = mp.solutions.face_mesh
-face_mesh = mp_face_mesh.FaceMesh()
+face_mesh = mp_face_mesh.FaceMesh(
+    refine_landmarks=True
+)
 
 # ---------------- Questions ----------------
 questions = [
@@ -149,23 +151,98 @@ def run_eye_tracker():
 
     import time
     start_time = time.time()
+    duration = 60
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
+        frame = cv2.flip(frame, 1)
+        h, w, _ = frame.shape
+
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = face_mesh.process(rgb)
 
+        eye_contact = False
+
         if results.multi_face_landmarks:
+            face = results.multi_face_landmarks[0]
+
+            def xy(lm):
+                return int(lm.x * w), int(lm.y * h)
+
+            try:
+                # LEFT EYE
+                l_left = face.landmark[33]
+                l_right = face.landmark[133]
+                l_top = face.landmark[159]
+                l_bottom = face.landmark[145]
+                l_pupil = face.landmark[468]
+
+                # RIGHT EYE
+                r_left = face.landmark[362]
+                r_right = face.landmark[263]
+                r_top = face.landmark[386]
+                r_bottom = face.landmark[374]
+                r_pupil = face.landmark[473]
+
+                # coordinates
+                llx, lly = xy(l_left)
+                lrx, lry = xy(l_right)
+                ltx, lty = xy(l_top)
+                lbx, lby = xy(l_bottom)
+                lpx, lpy = xy(l_pupil)
+
+                rlx, rly = xy(r_left)
+                rrx, rry = xy(r_right)
+                rtx, rty = xy(r_top)
+                rbx, rby = xy(r_bottom)
+                rpx, rpy = xy(r_pupil)
+
+                # centers
+                lc_x = (llx + lrx) / 2
+                lc_y = (lty + lby) / 2
+
+                rc_x = (rlx + rrx) / 2
+                rc_y = (rty + rby) / 2
+
+                # 🔥 tighter thresholds (important)
+                l_tx = (lrx - llx) * 0.1
+                l_ty = (lby - lty) * 0.1
+                r_tx = (rrx - rlx) * 0.1
+                r_ty = (rby - rty) * 0.1
+
+                left_ok = abs(lpx - lc_x) < l_tx and abs(lpy - lc_y) < l_ty
+                right_ok = abs(rpx - rc_x) < r_tx and abs(rpy - rc_y) < r_ty
+
+                if left_ok and right_ok:
+                    eye_contact = True
+
+                # رسم pupil
+                cv2.circle(frame, (lpx, lpy), 3, (0, 0, 255), -1)
+                cv2.circle(frame, (rpx, rpy), 3, (0, 0, 255), -1)
+
+            except:
+                # لو iris مش موجودة
+                eye_contact = False
+
+        if eye_contact:
             contact += 1
 
         total += 1
 
+        # display
+        color = (0,255,0) if eye_contact else (0,0,255)
+        text = "Eye Contact: YES" if eye_contact else "Eye Contact: NO"
+
+        cv2.putText(frame, text, (30,50),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+
         cv2.imshow("Eye Tracking (Auto 60 sec)", frame)
 
-        if time.time() - start_time >= 60:
+        # ⏱️ 60 sec auto stop
+        if time.time() - start_time >= duration:
             break
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -174,7 +251,8 @@ def run_eye_tracker():
     cap.release()
     cv2.destroyAllWindows()
 
-    return round((contact/total)*100 if total else 0, 2)
+    percent = (contact / total) * 100 if total else 0
+    return round(percent, 2)
 
 # ---------------- AUTH ----------------
 @app.route("/register", methods=["GET","POST"])
@@ -308,7 +386,6 @@ def eye_test():
 
         categories = calculate_categories(users[user]["answers"], score_eye)
 
-        # 🔥 NEW DIAGNOSIS HERE
         diagnosis = final_diagnosis(categories, eye)
 
         cars = total_score(categories)
