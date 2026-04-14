@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Autism System</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI';
+            background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .btns {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        a {
+            flex: 1;
+            padding: 15px;
+            text-decoration: none;
+            color: white;
+            border-radius: 12px;
+            font-size: 18px;
+        }
+
+        .parent {
+            background: #1976d2;
+        }
+
+        .specialist {
+            background: #4caf50;
+        }
+
+        a:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h1>Autism Assessment System</h1>
+    <p>Please choose your role to continue</p>
+
+    <div class="btns">
+        <!-- ✔ Parent شغال -->
+        <a href="/parent_info" class="parent">👨‍👩‍👧 Parent</a>
+
+        <!-- ✔ Specialist -->
+        <a href="/specialist" class="specialist">👨‍⚕️ Specialist</a>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assessment Result</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI';
+            background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+            text-align: center;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            width: 550px;
+            margin: auto;
+            margin-top: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .box {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .good { background:#e8f5e9; color:#2e7d32; }
+        .mid { background:#fff8e1; color:#f9a825; }
+        .bad { background:#ffebee; color:#c62828; }
+
+        .eye-box {
+            background:#f1f8e9;
+        }
+
+        .cars-box {
+            background:#fff3e0;
+        }
+
+        .details-box {
+            background:#fafafa;
+            text-align:left;
+        }
+
+        .btn {
+            display:inline-block;
+            margin-top:15px;
+            padding:12px 20px;
+            color:white;
+            border-radius:10px;
+            text-decoration:none;
+        }
+
+        .home { background:#333; }
+        .download { background:#1976d2; }
+        .specialist { background:#4caf50; }
+
+        .toggle-header {
+            cursor:pointer;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .arrow {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-right: 3px solid #555;
+            border-bottom: 3px solid #555;
+            transform: rotate(45deg);
+            transition: transform 0.3s ease;
+        }
+
+        .arrow.up {
+            transform: rotate(-135deg);
+        }
+
+        #details {
+            display:none;
+            margin-top:10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {opacity:0;}
+            to {opacity:1;}
+        }
+
+    </style>
+</head>
+
+<body>
+
+<h1>Assessment Report</h1>
+
+<div class="container">
+
+    <!-- Diagnosis -->
+    <div class="box 
+        {% if diagnosis == 'Normal' %}good
+        {% elif diagnosis == 'At Risk' %}mid
+        {% else %}bad
+        {% endif %}">
+        
+        <h2>{{ diagnosis }}</h2>
+        <p>Severity: {{ percentage }}%</p>
+    </div>
+
+    <!-- Eye Contact -->
+    <div class="box eye-box">
+        <h3>Eye Contact</h3>
+        <p>{{ eye_percent }}%</p>
+        <strong>{{ eye_label }}</strong>
+    </div>
+
+    
+
+    <!-- CARS -->
+    <div class="box cars-box">
+        <h3>CARS Score</h3>
+        <p>{{ cars_score }}</p>
+    </div>
+
+    <!-- Detailed Scores -->
+    <div class="box details-box">
+
+        <div class="toggle-header" onclick="toggleDetails()">
+            <h3>Detailed Scores</h3>
+            <span id="arrow" class="arrow"></span>
+        </div>
+
+        <div id="details">
+            {% for k,v in categories.items() %}
+                <p><b>{{ k }}:</b> {{ v | round(2) }}</p>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- Note -->
+   <div style="color:gray; margin-top:20px; text-align:left;">
+
+    <p>* This is a preliminary screening. Please consult a specialist.</p>
+
+    <ul style="margin-top:10px; padding-left:20px;">
+        <li><b>70% - 100%</b> → Good Eye Contact</li>
+        <li><b>40% - 69%</b> → Moderate Eye Contact</li>
+        <li><b>Below 40%</b> → Poor Eye Contact</li>
+    </ul>
+
+</div>
+    
+    
+    <!-- Buttons -->
+    <a href="/" class="btn home">Back Home</a>
+
+    <a href="/download" class="btn download">
+        Download PDF
+    </a>
+
+    <a href="/specialist" class="btn specialist">
+        Specialist Dashboard
+    </a>
+
+</div>
+
+<script>
+function toggleDetails() {
+    var content = document.getElementById("details");
+    var arrow = document.getElementById("arrow");
+
+    if (content.style.display === "none") {
+        content.style.display = "block";
+        arrow.classList.add("up");
+    } else {
+        content.style.display = "none";
+        arrow.classList.remove("up");
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Parent Info</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI';
+            background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 12px;
+            width: 100%;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #0d47a1;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>Child Information</h2>
+
+    <form method="post">
+        <input type="number" name="age" placeholder="Age" required>
+
+        <select name="gender" required>
+            <option value="">Select Gender</option>
+            <option value="0">Male</option>
+            <option value="1">Female</option>
+        </select>
+
+        <button type="submit">Start Questions</button>
+    </form>
+</div>
+
+</body>
+</html>
