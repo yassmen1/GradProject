@@ -1,18 +1,35 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file
-from report import generate_report
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session, send_file
 import cv2
 import mediapipe as mp
-import os   # 🔥 مهم للـ download check
+import io
+import json
+import os
+
+# 📄 PDF
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 app = Flask(__name__)
+app.secret_key = "secret123"
+
+# 🔥 Users DB
+users = {}
+
+# 🔥 SAVE USERS
+def save_users():
+    with open("users.json", "w") as f:
+        json.dump(users, f)
+
+# 🔥 LOAD USERS
+def load_users():
+    global users
+    if os.path.exists("users.json"):
+        with open("users.json", "r") as f:
+            users = json.load(f)
 
 # ---------------- MediaPipe ----------------
 mp_face_mesh = mp.solutions.face_mesh
-face_mesh = mp_face_mesh.FaceMesh(
-    static_image_mode=False,
-    max_num_faces=1,
-    refine_landmarks=True
-)
+face_mesh = mp_face_mesh.FaceMesh()
 
 # ---------------- Questions ----------------
 questions = [
@@ -33,80 +50,33 @@ questions = [
     "Overall, does your child behave like other children of same age?"
 ]
 
-negative_questions = [3, 5, 8, 9, 12]
+negative_questions = [3,5,8,9,12]
 
-# ---------------- Session ----------------
-session_data = {
-    "age": 0,
-    "gender": 0,
-    "answers": [],
-    "last_result": None
-}
-
-# ---------------- Eye Tracking ----------------
-def run_eye_tracker():
-    cap = cv2.VideoCapture(0)
-    contact_frames = 0
-    total_frames = 0
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        frame = cv2.flip(frame, 1)
-
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = face_mesh.process(rgb)
-
-        if results.multi_face_landmarks:
-            contact_frames += 1
-
-        total_frames += 1
-        cv2.imshow("Eye Test - Press Q", frame)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-    return round((contact_frames/total_frames)*100 if total_frames else 0, 2)
-
-# ---------------- Eye ----------------
-def interpret_eye_contact(p):
-    if p >= 70: return "Good Eye Contact"
-    elif p >= 40: return "Moderate Eye Contact"
-    else: return "Poor Eye Contact"
-
+# ---------------- Helpers ----------------
 def eye_to_score(p):
     if p >= 70: return 1
     elif p >= 50: return 2
     elif p >= 30: return 3
     else: return 4
 
-# ---------------- CARS ----------------
 mapping = [
-    "Relating to People","Imitation","Emotional Response","Body Use",
-    "Object Use","Adaptation to Change","Visual Response",
-    "Listening Response","Taste/Smell/Touch","Fear/Nervousness",
-    "Verbal Communication","Non-verbal Communication",
-    "Activity Level","Level of Consistency","General Impression"
+    "Relating","Imitation","Emotion","Body","Objects",
+    "Adaptation","Visual","Listening","Sensory","Fear",
+    "Verbal","NonVerbal","Activity","Consistency","General"
 ]
 
-def adjust_score(i, val):
+def adjust_score(i,val):
     if i in negative_questions:
         return 5 - val
     return val
 
 def calculate_categories(answers, eye_score):
     categories = {k: [] for k in mapping}
-    categories["Visual Response"] = eye_score
+    categories["Visual"] = eye_score
 
     for i, cat in enumerate(mapping):
-        if cat != "Visual Response":
-            val = adjust_score(i, answers[i])
-            categories[cat].append(val)
+        if cat != "Visual":
+            categories[cat].append(adjust_score(i, answers[i]))
 
     for k in categories:
         if isinstance(categories[k], list):
@@ -114,233 +84,329 @@ def calculate_categories(answers, eye_score):
 
     return categories
 
-def total_cars_score(c):
+def total_score(c):
     return sum(c.values())
 
-# ---------------- Diagnosis ----------------
-def interpret(cars_score, categories, eye_percent):
+# 🔥 NEW DIAGNOSIS FUNCTION
+def final_diagnosis(categories, eye_percent):
 
-    severe = sum(1 for v in categories.values() if v >= 3)
-    mild = sum(1 for v in categories.values() if v >= 2.5)
+    autism_score = 0
+    adhd_score = 0
+    delay_score = 0
 
-    if severe >= 5:
+    # -------- Autism --------
+    if categories["Relating"] > 2.5:
+        autism_score += 2
+
+    if categories["Verbal"] > 2.5:
+        autism_score += 2
+
+    if categories["NonVerbal"] > 2.5:
+        autism_score += 2
+
+    if categories["Body"] > 3:
+        autism_score += 1
+
+    if eye_percent < 40:
+        autism_score += 2
+
+    # -------- ADHD --------
+    if categories["Activity"] > 3:
+        adhd_score += 2
+
+    if categories["Consistency"] > 2.5:
+        adhd_score += 2
+
+    if categories["Listening"] > 2:
+        adhd_score += 1
+
+    # -------- Developmental Delay --------
+    avg_score = sum(categories.values()) / len(categories)
+
+    if avg_score > 2.5:
+        delay_score += 3
+
+    # -------- Decision --------
+    if autism_score >= 6:
         return "Autism"
 
-    if mild >= 7 and eye_percent < 50:
-        return "Autism"
+    if adhd_score >= 4:
+        return "ADHD"
 
-    if cars_score < 30 and severe < 3:
-        return "No Autism"
+    if delay_score >= 3:
+        return "Developmental Delay"
 
-    return "At Risk (Needs Evaluation)"
+    if autism_score >= 3:
+        return "At Risk"
 
-# ---------------- Specialist ----------------
-def generate_insights(categories, eye_percent):
-    insights = []
+    return "Normal"
 
-    if eye_percent < 40:
-        insights.append("Low eye contact detected")
+# ---------------- Eye Tracking ----------------
+def run_eye_tracker():
+    cap = cv2.VideoCapture(0)
+    contact = 0
+    total = 0
 
-    if categories["Relating to People"] > 2.5:
-        insights.append("Weak social interaction")
+    import time
+    start_time = time.time()
 
-    if categories["Verbal Communication"] > 2.5:
-        insights.append("Communication delay")
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-    if categories["Body Use"] > 3:
-        insights.append("Repetitive behavior detected")
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = face_mesh.process(rgb)
 
-    return insights
+        if results.multi_face_landmarks:
+            contact += 1
 
-def generate_recommendations(categories, eye_percent):
-    rec = []
+        total += 1
 
-    if eye_percent < 40:
-        rec.append("Encourage eye contact through play")
+        cv2.imshow("Eye Tracking (Auto 60 sec)", frame)
 
-    if categories["Relating to People"] > 2.5:
-        rec.append("Increase social interaction")
+        if time.time() - start_time >= 60:
+            break
 
-    if categories["Verbal Communication"] > 2.5:
-        rec.append("Speech therapy recommended")
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-    if categories["Body Use"] > 3:
-        rec.append("Structured routines recommended")
+    cap.release()
+    cv2.destroyAllWindows()
 
-    return rec
+    return round((contact/total)*100 if total else 0, 2)
 
-# 🔥 AI Solutions
-def generate_solutions(categories, eye_percent):
+# ---------------- AUTH ----------------
+@app.route("/register", methods=["GET","POST"])
+def register():
+    if request.method == "POST":
+        u = request.form.get("username")
+        p = request.form.get("password")
 
-    solutions = []
+        if u in users:
+            return "User exists"
 
-    if eye_percent < 40:
-        solutions.append({
-            "title": "Improve Eye Contact",
-            "steps": [
-                "Play face-to-face games",
-                "Use toys near your face",
-                "Call child’s name frequently"
-            ]
-        })
+        users[u] = {
+            "password": p,
+            "answers": [],
+            "last_result": None,
+            "chat_history": []
+        }
 
-    if categories["Relating to People"] > 2.5:
-        solutions.append({
-            "title": "Improve Social Skills",
-            "steps": [
-                "Encourage group play",
-                "Spend daily interaction time"
-            ]
-        })
+        save_users()
+        return redirect(url_for("login"))
 
-    if categories["Verbal Communication"] > 2.5:
-        solutions.append({
-            "title": "Improve Communication",
-            "steps": [
-                "Use simple words",
-                "Encourage imitation",
-                "Speech therapy recommended"
-            ]
-        })
+    return render_template("register.html")
 
-    if categories["Body Use"] > 3:
-        solutions.append({
-            "title": "Reduce Repetitive Behavior",
-            "steps": [
-                "Structured routine",
-                "Use sensory toys"
-            ]
-        })
 
-    if categories["Activity Level"] > 3:
-        solutions.append({
-            "title": "Manage Hyperactivity",
-            "steps": [
-                "Short instructions",
-                "Physical activities"
-            ]
-        })
+@app.route("/login", methods=["GET","POST"])
+def login():
+    if request.method == "POST":
+        u = request.form.get("username")
+        p = request.form.get("password")
 
-    return solutions
+        if u in users and users[u]["password"] == p:
+            session.clear()
+            session["user"] = u
+            return redirect(url_for("index"))
 
-# ---------------- Routes ----------------
+        return "Wrong credentials"
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+def get_current_user():
+    if "user" not in session:
+        return None
+    u = session["user"]
+    if u not in users:
+        session.clear()
+        return None
+    return u
+
+# ---------------- ROUTES ----------------
 @app.route("/")
 def index():
+    if not get_current_user():
+        return redirect(url_for("login"))
     return render_template("index.html")
+
 
 @app.route("/parent_info", methods=["GET","POST"])
 def parent_info():
+    user = get_current_user()
+    if not user:
+        return redirect(url_for("login"))
+
     if request.method=="POST":
-        session_data["age"]=int(request.form.get("age"))
-        session_data["gender"]=int(request.form.get("gender"))
-        session_data["answers"]=[None]*len(questions)
+        users[user]["answers"]=[None]*len(questions)
+        save_users()
         return redirect(url_for("question", q=0))
+
     return render_template("parent_info.html")
+
 
 @app.route("/questionnaire", methods=["GET","POST"])
 def question():
-    q_index=int(request.args.get("q",0))
+    user = get_current_user()
+    if not user:
+        return redirect(url_for("login"))
 
-    if request.method=="POST":
+    q = int(request.args.get("q", 0))
+
+    if request.method == "POST":
 
         if "prev" in request.form:
-            return redirect(url_for("question", q=max(0,q_index-1)))
+            return redirect(url_for("question", q=max(0, q-1)))
 
         if "next" in request.form:
-            ans=request.form.get("answer")
+            ans = request.form.get("answer")
 
-            if ans is None or ans=="":
+            if not ans:
                 return render_template(
                     "question.html",
-                    question=questions[q_index],
-                    q_index=q_index,
+                    question=questions[q],
+                    q_index=q,
                     total=len(questions),
-                    selected=session_data["answers"][q_index],
-                    error="Please select an answer"
+                    selected=users[user]["answers"][q],
+                    error="Please select an answer first"
                 )
 
-            session_data["answers"][q_index]=int(ans)
+            users[user]["answers"][q] = int(ans)
+            save_users()
 
-            if q_index == len(questions)-1:
+            if q == len(questions) - 1:
                 return redirect(url_for("eye_test"))
 
-            return redirect(url_for("question", q=q_index+1))
+            return redirect(url_for("question", q=q+1))
 
     return render_template(
         "question.html",
-        question=questions[q_index],
-        q_index=q_index,
+        question=questions[q],
+        q_index=q,
         total=len(questions),
-        selected=session_data["answers"][q_index]
+        selected=users[user]["answers"][q],
+        error=None
     )
+
 
 @app.route("/eye_test", methods=["GET","POST"])
 def eye_test():
+    user = get_current_user()
+    if not user:
+        return redirect(url_for("login"))
 
     if request.method=="POST":
 
-        eye_percent = run_eye_tracker()
-        eye_label = interpret_eye_contact(eye_percent)
-        eye_score = eye_to_score(eye_percent)
+        eye = run_eye_tracker()
+        score_eye = eye_to_score(eye)
 
-        categories = calculate_categories(session_data["answers"], eye_score)
-        cars_score = total_cars_score(categories)
+        categories = calculate_categories(users[user]["answers"], score_eye)
 
-        diagnosis = interpret(cars_score, categories, eye_percent)
-        percentage = (cars_score/60)*100
+        # 🔥 NEW DIAGNOSIS HERE
+        diagnosis = final_diagnosis(categories, eye)
 
-        session_data["last_result"] = {
+        cars = total_score(categories)
+        percent = (cars/60)*100
+
+        users[user]["last_result"] = {
             "diagnosis": diagnosis,
-            "percentage": percentage,
-            "eye_percent": eye_percent,
-            "cars_score": cars_score,
+            "percentage": percent,
+            "eye_percent": eye,
             "categories": categories
         }
 
-        generate_report(session_data["last_result"])
+        save_users()
 
-        return render_template(
-            "result.html",
+        return render_template("result.html",
             diagnosis=diagnosis,
-            cars_score=round(cars_score,2),
-            percentage=round(percentage,1),
-            eye_percent=eye_percent,
-            eye_label=eye_label,
+            percentage=round(percent,1),
+            eye_percent=eye,
             categories=categories
         )
 
     return render_template("eye_test.html")
 
-# 🔥 DOWNLOAD FIX
-@app.route("/download")
-def download():
-    if os.path.exists("report.pdf"):
-        return send_file("report.pdf", as_attachment=True)
-    return "PDF not found ❌"
+
+# 🔥 CHAT
+@app.route("/ask_ai", methods=["POST"])
+def ask_ai():
+    user = get_current_user()
+    if not user:
+        return jsonify({"answer": "Please login again"})
+
+    question = request.json.get("question")
+    data = users[user]["last_result"]
+
+    users[user]["chat_history"].append({"role":"user","content":question})
+
+    q = question.lower()
+    eye = data["eye_percent"]
+    diagnosis = data["diagnosis"]
+
+    if "eye" in q:
+        answer = "Low eye contact" if eye < 40 else "Good eye contact"
+    elif "autism" in q or "why" in q:
+        answer = f"Diagnosis is {diagnosis}"
+    else:
+        answer = "Ask about eye contact or behavior"
+
+    users[user]["chat_history"].append({"role":"assistant","content":answer})
+
+    save_users()
+
+    return jsonify({"answer": answer})
+
 
 @app.route("/specialist")
 def specialist():
+    user = get_current_user()
+    if not user:
+        return redirect(url_for("login"))
 
-    data = session_data.get("last_result")
+    data = users[user]["last_result"]
+    chat = users[user]["chat_history"]
 
     if not data:
-        return render_template("no_data.html")
+        return redirect(url_for("index"))
 
-    insights = generate_insights(data["categories"], data["eye_percent"])
-    recommendations = generate_recommendations(data["categories"], data["eye_percent"])
-    solutions = generate_solutions(data["categories"], data["eye_percent"])
+    return render_template("specialist.html", **data, chat_history=chat)
 
-    return render_template(
-        "specialist.html",
-        diagnosis=data["diagnosis"],
-        percentage=round(data["percentage"],1),
-        eye_percent=data["eye_percent"],
-        cars_score=data["cars_score"],
-        categories=data["categories"],
-        insights=insights,
-        recommendations=recommendations,
-        solutions=solutions
-    )
 
-if __name__=="__main__":
+# 🔥 PDF
+@app.route("/download_pdf")
+def download_pdf():
+    user = get_current_user()
+    if not user:
+        return redirect(url_for("login"))
+
+    data = users[user]["last_result"]
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer)
+    styles = getSampleStyleSheet()
+
+    content = []
+    content.append(Paragraph("Autism Assessment Report", styles["Title"]))
+    content.append(Spacer(1,10))
+
+    content.append(Paragraph(f"Diagnosis: {data['diagnosis']}", styles["Normal"]))
+    content.append(Paragraph(f"Severity: {round(data['percentage'],1)}%", styles["Normal"]))
+    content.append(Paragraph(f"Eye Contact: {data['eye_percent']}%", styles["Normal"]))
+
+    doc.build(content)
+    buffer.seek(0)
+
+    return send_file(buffer, as_attachment=True, download_name="report.pdf")
+
+
+# ---------------- START ----------------
+load_users()
+
+if __name__ == "__main__":
     app.run(debug=True)

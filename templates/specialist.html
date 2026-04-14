@@ -1,99 +1,183 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Specialist Dashboard</title>
+<title>AI Specialist</title>
 
-    <style>
-        body {
-            font-family: 'Segoe UI';
-            background: linear-gradient(135deg, #e3f2fd, #fce4ec);
-            text-align: center;
-        }
+<style>
+body {
+    font-family: 'Segoe UI';
+    background: linear-gradient(135deg,#e3f2fd,#fce4ec);
+}
 
-        .container {
-            width: 700px;
-            margin: auto;
-            margin-top: 40px;
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
+.container {
+    width:600px;
+    margin:auto;
+    margin-top:40px;
+    background:white;
+    padding:20px;
+    border-radius:20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
 
-        .box {
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-        }
+/* 🔥 Logout */
+.logout {
+    text-align:right;
+    margin-bottom:10px;
+}
 
-        .good { background:#e8f5e9; color:#2e7d32; }
-        .mid { background:#fff8e1; color:#f9a825; }
-        .bad { background:#ffebee; color:#c62828; }
+.logout a {
+    background:#e53935;
+    color:white;
+    padding:8px 15px;
+    border-radius:10px;
+    text-decoration:none;
+    font-size:14px;
+}
 
-        h2 { color:#333; }
+/* 💬 Chat */
+#chatBox {
+    height:400px;
+    overflow-y:auto;
+    background:#f5f5f5;
+    padding:10px;
+    border-radius:10px;
+    display:flex;
+    flex-direction:column;
+}
 
-        ul {
-            text-align:left;
-        }
-    </style>
+/* 👤 User */
+.user-msg {
+    align-self:flex-end;
+    background:#1976d2;
+    color:white;
+    padding:10px;
+    border-radius:15px;
+    margin:5px;
+    max-width:70%;
+}
+
+/* 🤖 AI */
+.ai-msg {
+    align-self:flex-start;
+    background:#e0e0e0;
+    padding:10px;
+    border-radius:15px;
+    margin:5px;
+    max-width:70%;
+}
+
+/* ✏️ Input */
+.input-area {
+    display:flex;
+    margin-top:10px;
+}
+
+input {
+    flex:1;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+
+button {
+    margin-left:5px;
+    padding:10px 15px;
+    background:#1976d2;
+    color:white;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+button:hover {
+    background:#0d47a1;
+}
+</style>
+
 </head>
 
 <body>
 
-<h1>Specialist Dashboard</h1>
-
 <div class="container">
 
-    <div class="box 
-        {% if percentage < 50 %}good
-        {% elif percentage < 70 %}mid
-        {% else %}bad
-        {% endif %}">
-        
-        <h2>{{ diagnosis }}</h2>
-        <p>Severity: {{ percentage }}%</p>
-        <p>Eye Contact: {{ eye_percent }}%</p>
-    </div>
+<!-- 🔥 Logout -->
+<div class="logout">
+    <a href="/logout" onclick="return confirm('Are you sure you want to logout?')">
+        Logout 🚪
+    </a>
+</div>
 
-    <div class="box" style="background:#e3f2fd;">
-        <h3>Insights</h3>
-        <ul>
-            {% for i in insights %}
-                <li>{{ i }}</li>
-            {% endfor %}
-        </ul>
-    </div>
+<!-- 📊 Info -->
+<h2>{{ diagnosis }}</h2>
+<p>Severity: {{ percentage }}%</p>
+<p>Eye Contact: {{ eye_percent }}%</p>
 
-    <div class="box" style="background:#f1f8e9;">
-        <h3>Recommendations</h3>
-        <ul>
-            {% for r in recommendations %}
-                <li>{{ r }}</li>
-            {% endfor %}
-        </ul>
-    </div>
+<!-- 💬 CHAT -->
+<div id="chatBox">
 
-    <!-- 🔥 AI SOLUTIONS (ADDED ONLY) -->
-    <div class="box" style="background:#e8f5e9;">
-        <h3>AI Solutions</h3>
-        {% for s in solutions %}
-            <p><b>{{ s.title }}</b></p>
-            <ul>
-                {% for step in s.steps %}
-                    <li>{{ step }}</li>
-                {% endfor %}
-            </ul>
-        {% endfor %}
-    </div>
-
-    <div class="box" style="background:#fafafa; text-align:left;">
-        <h3>Detailed Scores</h3>
-        {% for k,v in categories.items() %}
-            <p><b>{{ k }}:</b> {{ v | round(2) }}</p>
-        {% endfor %}
-    </div>
+    {% for msg in chat_history %}
+        {% if msg.role == "user" %}
+            <div class="user-msg">{{ msg.content }}</div>
+        {% else %}
+            <div class="ai-msg">{{ msg.content }}</div>
+        {% endif %}
+    {% endfor %}
 
 </div>
+
+<!-- ✏️ Input -->
+<div class="input-area">
+    <input id="question" placeholder="Type your message...">
+    <button onclick="askAI()">Send</button>
+</div>
+
+</div>
+
+<script>
+async function askAI(){
+
+    let input = document.getElementById("question");
+    let msg = input.value;
+
+    if(!msg) return;
+
+    let box = document.getElementById("chatBox");
+
+    // 👤 user message
+    let user = document.createElement("div");
+    user.className="user-msg";
+    user.innerText=msg;
+    box.appendChild(user);
+
+    input.value="";
+
+    // ⏳ loading
+    let loading = document.createElement("div");
+    loading.className="ai-msg";
+    loading.innerText="Typing...";
+    box.appendChild(loading);
+
+    box.scrollTop = box.scrollHeight;
+
+    let res = await fetch("/ask_ai",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({question:msg})
+    });
+
+    let data = await res.json();
+
+    box.removeChild(loading);
+
+    // 🤖 AI response
+    let ai = document.createElement("div");
+    ai.className="ai-msg";
+    ai.innerText=data.answer;
+    box.appendChild(ai);
+
+    box.scrollTop = box.scrollHeight;
+}
+</script>
 
 </body>
 </html>
