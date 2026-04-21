@@ -14,7 +14,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 import os
 from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("Add Your API"))
 app = Flask(__name__)
 app.secret_key = "secret123"
 
@@ -32,14 +32,35 @@ def load_users():
             users = json.load(f)
 
 # ---------------- TELEGRAM ----------------
-def send_alert(msg):
-    token = "PUT_YOUR_BOT_TOKEN"
-    chat_id = "PUT_YOUR_CHAT_ID"
+def send_alert(msg, sensor_data=None):
+    token = "PUT_YOUR_TOKEN_HERE"
+    chat_id = "1128124853"
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+
     try:
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        requests.post(url, data={"chat_id": chat_id, "text": msg})
-    except:
-        pass
+        if sensor_data:
+            full_msg = f"""
+🚨 ALERT
+
+{msg}
+
+HR: {sensor_data.get('hr')}
+ACC: {sensor_data.get('acc')}
+MIC: {sensor_data.get('mic')}
+"""
+        else:
+            full_msg = msg
+
+        response = requests.post(url, data={
+            "chat_id": chat_id,
+            "text": full_msg
+        })
+
+        print("TELEGRAM STATUS:", response.text)
+
+    except Exception as e:
+        print("ERROR:", e)
 
 # ---------------- SENSOR ----------------
 sensor_data = {
@@ -119,21 +140,21 @@ def get_data():
     return jsonify(sensor_data)
 # ---------------- QUESTIONS ----------------
 questions = [
-"Does your child respond when you call their name?",
-"Does your child imitate actions (like clapping or waving)?",
-"Does your child show appropriate emotions?",
-"Does your child show unusual body movements?",
-"Does your child use toys normally?",
-"Does your child get upset with routine changes?",
-"Does your child look at people normally?",
-"Does your child respond to sounds?",
-"Does your child react strongly to senses?",
-"Does your child show unusual fears?",
-"Does your child speak?",
-"Does your child use eye contact?",
-"Is your child over/under active?",
-"Are behaviors consistent?",
-"Does your child behave like same age?"
+    "Does your child respond when you call their name?",
+    "Does your child imitate actions (like clapping or waving)?",
+    "Does your child show appropriate emotions (smile, laugh)?",
+    "Does your child show unusual body movements (rocking, spinning)?",
+    "Does your child use toys in a normal way?",
+    "Does your child get upset with small changes in routine?",
+    "Does your child insist on doing things the same way every time?",
+    "Does your child respond to sounds or voices?",
+    "Does your child repeat words or phrases (echolalia)?",
+    "Does your child show unusual fears or anxiety?",
+    "Does your child speak or try to communicate verbally?",
+    "Does your child use eye contact or gestures to communicate?",
+    "Is your child overly active or unusually inactive?",
+    "Are your child's behaviors consistent day to day?",
+    "Overall, does your child behave like other children of same age?"
 ]
 
 negative_questions = [3,5,8,9,12]
@@ -315,7 +336,8 @@ def index():
     if not user:
         return redirect(url_for("login"))
 
-    result = users[user]["last_result"]  # 🔥 دي أهم سطر
+    user_data = users.get(user, {})
+    result = user_data.get("last_result", "No result yet")  # 🔥 دي أهم سطر
 
     return render_template("index.html", result=result)
 
