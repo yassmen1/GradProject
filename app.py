@@ -6,6 +6,8 @@ import json
 import os
 import requests
 import time
+from zeroconf import ServiceInfo, Zeroconf
+import socket
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
@@ -488,7 +490,24 @@ def download_pdf():
 
     return send_file(buffer, as_attachment=True, download_name="report.pdf")
 
+def register_mdns():
+    desc = {'path': '/'}
+    ip = socket.inet_aton(socket.gethostbyname(socket.gethostname()))
 
+    info = ServiceInfo(
+        "_http._tcp.local.",
+        "esp-server._http._tcp.local.",
+        addresses=[ip],
+        port=5000,
+        properties=desc,
+        server="esp-server.local.",
+    )
+
+    zeroconf = Zeroconf()
+    zeroconf.register_service(info)
+
+# 🔥 تشغيله
+register_mdns()
 # ---------------- START ----------------
 load_users()
 
