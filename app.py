@@ -308,9 +308,13 @@ def get_current_user():
 # ---------------- MAIN ----------------
 @app.route("/")
 def index():
-    if not get_current_user():
+    user = get_current_user()
+    if not user:
         return redirect(url_for("login"))
-    return render_template("index.html")
+
+    result = users[user]["last_result"]  # 🔥 دي أهم سطر
+
+    return render_template("index.html", result=result)
 
 
 @app.route("/parent_info", methods=["GET", "POST"])
@@ -321,7 +325,13 @@ def parent_info():
 
     # ✅ لو المستخدم عمل assessment قبل كده
     if users[user]["last_result"] is not None:
-        return redirect(url_for("specialist"))
+     return render_template(
+        "result.html",
+        diagnosis=users[user]["last_result"]["diagnosis"],
+        percentage=round(users[user]["last_result"]["percentage"], 1),
+        eye_percent=users[user]["last_result"]["eye_percent"],
+        categories=users[user]["last_result"]["categories"],
+    )
 
     if request.method == "POST":
         users[user]["answers"] = [None] * len(questions)
