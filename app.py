@@ -26,16 +26,40 @@ def load_users():
         with open("users.json", "r") as f:
             users = json.load(f)
 
-# ---------------- TELEGRAM ----------------
-def send_alert(msg):
-    token = "PUT_YOUR_BOT_TOKEN"
-    chat_id = "PUT_YOUR_CHAT_ID"
-    try:
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        requests.post(url, data={"chat_id": chat_id, "text": msg})
-    except:
-        pass
+# ---------------- TELEGRAM ----------------oken = "P8756035194:AAEPgR-we1L9dTaaOgU30YzaiCU0ubkuUPU"
+import requests
 
+def send_alert(msg, sensor_data=None):
+    token = "8756035194:AAEPgR-we1L9dTaaOgU30YzaiCU0ubkuUPU"   # ⚠️ حط التوكن الصح هنا
+    chat_id = "1128124853"
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+
+    try:
+        # لو في sensor data ضيفها
+        if sensor_data:
+            full_msg = f"""
+🚨 ALERT FROM SYSTEM
+
+{msg}
+
+❤️ HR: {sensor_data.get('hr', 'N/A')}
+🧍 Movement: {sensor_data.get('acc', 'N/A')}
+🎤 Mic: {sensor_data.get('mic', 'N/A')}
+🧠 State: {sensor_data.get('state', 'N/A')}
+"""
+        else:
+            full_msg = f"🚨 ALERT\n{msg}"
+
+        response = requests.post(url, data={
+            "chat_id": chat_id,
+            "text": full_msg
+        })
+
+        print("TELEGRAM STATUS:", response.text)
+
+    except Exception as e:
+        print("ERROR SENDING ALERT:", e)
 # ---------------- SENSOR ----------------
 sensor_data = {
     "hr": 0,
@@ -49,26 +73,35 @@ sensor_data = {
 def analyze_sensor(hr, acc, mic):
     alerts = []
 
-    if hr > 140:
+    # ❤️ Heart Rate
+    if hr > 120:
         alerts.append("⚠️ High Heart Rate")
-
-    if hr != 0 and hr < 50:
+    elif hr != 0 and hr < 60:
         alerts.append("⚠️ Low Heart Rate")
 
-    if acc > 15:
-        alerts.append("⚠️ Sudden Movement")
+    # 🧍 Acceleration
+    if acc > 18:
+        alerts.append("⚠️ Possible Fall / Strong Movement")
+    elif acc < 8:
+        alerts.append("⚠️ No Movement")
 
-    if mic > 70:
-        alerts.append("⚠️ Loud Crying")
+    # 🎤 Mic
+    if mic > 60:
+        alerts.append("⚠️ Loud Noise")
 
     return alerts
 
 def predict_state(hr, acc, mic):
-    if hr > 130 and mic > 60:
-        return "Stress"
-    if acc > 15 and mic > 70:
-        return "Meltdown"
-    return "Normal"
+    if acc > 20: return "Fall Detected 🚨"
+    elif acc > 15: return "High Movement ⚡" 
+    elif acc < 8: return "No Movement ⚠️" 
+    # 🎤 Sound
+    if mic > 70: return "Crying 😢" 
+    elif mic > 30: return "Noise Detected 🔊" 
+    # ❤️ Heart 
+    if hr > 130: return "High Heart Rate ❤️‍🔥" 
+    elif hr != 0 and hr < 60: return "Low Heart Rate 💔"
+    return "Normal ✅"
 
 def emergency_mode(alerts):
     if len(alerts) >= 2:
@@ -84,6 +117,7 @@ def sensor():
     global sensor_data
 
     data = request.json
+    print("DATA RECEIVED:", data)
 
     hr = data.get("hr", 0)
     acc = data.get("acc", 0)
@@ -102,13 +136,12 @@ def sensor():
         "state": state
     }
 
-    log_data(sensor_data)
-    emergency_mode(alerts)
+    # 🔥 هنا السحر
+    if alerts:
+        for a in alerts:
+            send_alert(a, sensor_data)
 
-    for a in alerts:
-        send_alert(a)
-
-    return {"status": "ok"}
+    return {"status": "ok"} 
 @app.route("/get_data")
 def get_data():
     return jsonify(sensor_data)
@@ -466,14 +499,33 @@ def download_pdf():
     styles = getSampleStyleSheet()
 
     content = []
+
     content.append(Paragraph("Autism Assessment Report", styles["Title"]))
     content.append(Spacer(1, 10))
 
     content.append(Paragraph(f"Diagnosis: {data['diagnosis']}", styles["Normal"]))
-    content.append(
-        Paragraph(f"Severity: {round(data['percentage'],1)}%", styles["Normal"])
-    )
+    content.append(Paragraph(f"Severity: {round(data['percentage'],1)}%", styles["Normal"]))
     content.append(Paragraph(f"Eye Contact: {data['eye_percent']}%", styles["Normal"]))
+
+    content.append(Spacer(1, 10))
+
+    # 🔥 NEW: Sensor Data
+    content.append(Paragraph("Sensor Summary:", styles["Heading2"]))
+
+    content.append(Paragraph(f"Heart Rate: {sensor_data['hr']}", styles["Normal"]))
+    content.append(Paragraph(f"Movement: {sensor_data['acc']}", styles["Normal"]))
+    content.append(Paragraph(f"Sound Level: {sensor_data['mic']}", styles["Normal"]))
+    content.append(Paragraph(f"State: {sensor_data['state']}", styles["Normal"]))
+
+    # 🔥 Alerts
+    content.append(Spacer(1, 10))
+    content.append(Paragraph("Alerts:", styles["Heading2"]))
+
+    if sensor_data["alerts"]:
+        for a in sensor_data["alerts"]:
+          content.append(Paragraph(a, styles["Normal"]))
+    else:
+       content.append(Paragraph("No Alerts", styles["Normal"]))
 
     doc.build(content)
     buffer.seek(0)
