@@ -6,15 +6,17 @@ import json
 import os
 import requests
 import time
-
-
-
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 import os
 from openai import OpenAI
+from dotenv import load_dotenv
 
-client = OpenAI(api_key=os.getenv("Add Your API"))
+
+load_dotenv()
+Api_key= os.getenv("APiKey")
+
+
 app = Flask(__name__)
 app.secret_key = "secret123"
 
@@ -22,21 +24,22 @@ app.secret_key = "secret123"
 users = {}
 
 def save_users():
-    with open("users.json", "w") as f:
+    with open("data/users.json", "w") as f:
         json.dump(users, f)
 
 def load_users():
     global users
-    if os.path.exists("users.json"):
-        with open("users.json", "r") as f:
+    if os.path.exists("data/users.json"):
+        with open("data/users.json", "r") as f:
             users = json.load(f)
 
 # ---------------- TELEGRAM ----------------
 def send_alert(msg, sensor_data=None):
-    token = "PUT_YOUR_TOKEN_HERE"
+    TOKEN = os.getenv("token")
+
     chat_id = "1128124853"
 
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
     try:
         if sensor_data:
@@ -101,7 +104,7 @@ def emergency_mode(alerts):
         send_alert("🚨 EMERGENCY الحالة خطيرة!")
 
 def log_data(data):
-    with open("sensor_log.json", "a") as f:
+    with open("data/sensor_log.json", "a") as f:
         f.write(json.dumps(data) + "\n")
 
 # ---------------- SENSOR API ----------------
@@ -462,19 +465,33 @@ def ask_ai():
     question = request.json.get("question")
     data = users[user]["last_result"]
 
+    context = f"""
+Diagnosis: {data['diagnosis']}
+Severity: {data['percentage']}%
+Eye Contact: {data['eye_percent']}%
+
+HR: {sensor_data['hr']}
+Movement: {sensor_data['acc']}
+Sound: {sensor_data['mic']}
+State: {sensor_data['state']}
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are an autism specialist helping parents."},
+                {"role": "user", "content": context + "\n\n" + question}
+            ]
+        )
+
+        answer = response.choices[0].message.content
+
+    except Exception as e:
+        print("ERROR:", e)
+        answer = "AI not working"
+
     users[user]["chat_history"].append({"role": "user", "content": question})
-
-    q = question.lower()
-    eye = data["eye_percent"]
-    diagnosis = data["diagnosis"]
-
-    if "eye" in q:
-        answer = "Low eye contact" if eye < 40 else "Good eye contact"
-    elif "autism" in q or "why" in q:
-        answer = f"Diagnosis is {diagnosis}"
-    else:
-        answer = "Ask about eye contact or behavior"
-
     users[user]["chat_history"].append({"role": "assistant", "content": answer})
 
     save_users()
