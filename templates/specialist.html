@@ -7,6 +7,9 @@
 body {
     font-family: 'Segoe UI';
     background: linear-gradient(135deg,#e3f2fd,#fce4ec);
+    margin: 0;
+    padding-top: 70px;
+    
 }
 
 .container {
@@ -82,7 +85,7 @@ input {
 button {
     margin-left:5px;
     padding:10px 15px;
-    background:#1976d2;
+    background:#0d47a1;
     color:white;
     border:none;
     border-radius:10px;
@@ -90,7 +93,266 @@ button {
 }
 
 button:hover {
-    background:#0d47a1;
+    background: linear-gradient(135deg,#a855f7,#7c3aed);    
+}
+/* 🔝 NAVBAR FIXED */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 12px 30px;
+
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(10px);
+
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    z-index: 1000;
+
+    box-sizing: border-box;
+}
+
+.nav-left {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logout {
+    background:#ff4d4d;
+    color:white;
+    padding:6px 14px;
+    border-radius:8px;
+    text-decoration:none;
+    font-size:13px;
+}
+
+.logout:hover {
+    background:#e53935;
+}
+/* 📦 RESULT CARD */
+.result-card{
+    margin-bottom:15px;
+}
+
+/* 🟣 TITLE */
+.diagnosis{
+    font-size:22px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:15px;
+    color:#7c3aed;
+}
+
+/* 📊 STATS ROW */
+.stats{
+    display:flex;
+    gap:15px;
+    margin-bottom:15px;
+}
+
+/* 📦 STAT BOX */
+.stat-box{
+    flex:1;
+    padding:18px;
+    border-radius:18px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    font-size:14px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.05);
+    transition:0.3s;
+}
+
+/* ✨ hover */
+.stat-box:hover{
+    transform:translateY(-3px);
+}
+
+/* 🔢 NUMBER */
+.stat-box strong{
+    font-size:22px;
+    margin-top:6px;
+}
+
+/* 🔵 SEVERITY */
+.severity{
+    background:linear-gradient(135deg,#e0f2fe,#bae6fd);
+    color:#0369a1;
+}
+
+/* 🌸 EYE CONTACT */
+.eye{
+    background:linear-gradient(135deg,#fce7f3,#fbcfe8);
+    color:#9d174d;
+}
+
+/* 💬 CHAT BOX */
+#chatBox{
+    height:320px;
+    overflow-y:auto;
+    background:#f8fafc;
+    padding:15px;
+    border-radius:15px;
+    display:flex;
+    flex-direction:column;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+}
+
+/* 👤 USER MSG */
+.user-msg{
+    align-self:flex-end;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    color:white;
+    padding:10px 14px;
+    border-radius:15px;
+    margin:6px 0;
+    max-width:70%;
+    font-size:14px;
+}
+
+/* 🤖 AI MSG */
+.ai-msg{
+    align-self:flex-start;
+    background:#e5e7eb;
+    color:#333;
+    padding:10px 14px;
+    border-radius:15px;
+    margin:6px 0;
+    max-width:70%;
+    font-size:14px;
+}
+
+/* ✏️ INPUT AREA */
+.input-area{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+}
+
+/* ⌨️ INPUT */
+input{
+    flex:1;
+    padding:12px;
+    border-radius:12px;
+    border:1px solid #ddd;
+    outline:none;
+}
+
+/* 🔘 BUTTONS */
+button{
+    padding:10px 14px;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);    
+    color:white;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.05);
+}
+
+/* 🎤 MIC BUTTON */
+..mic-btn{
+    background: linear-gradient(135deg,#a855f7,#7c3aed);
+}
+
+
+/* ➤ SEND AUDIO */
+.send-btn{
+    background: linear-gradient(135deg,#a855f7,#7c3aed);
+}
+
+/* 🔴 RECORDING */
+.recording{
+    background:#06b6d4 ;
+}
+
+/* 🎵 WAVE */
+#wave{
+    display:flex;
+    align-items:center;
+    gap:2px;
+}
+/* 🧠 RESULT HEADER FIX */
+.result-header{
+    margin-bottom:20px;
+}
+
+/* 🟣 DELAY TITLE */
+.result-header .title{
+    font-size:24px;
+    font-weight:700;
+    color:#7c3aed;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+/* 📊 STATS ROW FIX */
+.result-header .stats{
+    display:flex;
+    gap:20px;
+    width:100%;
+}
+
+/* 📦 STAT BOX BIG */
+.result-header .stat{
+    flex:1;
+    display:flex;
+    align-items:center;
+    gap:15px;
+
+    padding:20px;
+    border-radius:20px;
+
+    min-width:0; /* مهم */
+
+    box-shadow:0 10px 25px rgba(0,0,0,0.05);
+}
+
+/* 🎯 ICON */
+.result-header .icon{
+    font-size:28px;
+}
+
+/* 📝 TEXT */
+.result-header .stat p{
+    margin:0;
+    font-size:14px;
+}
+
+/* 🔢 NUMBER */
+.result-header .stat h3{
+    margin:0;
+    font-size:26px;
+}
+
+/* 🔵 SEVERITY */
+.result-header .severity{
+    background:linear-gradient(135deg,#dbeafe,#bfdbfe);
+    color:#1d4ed8;
+}
+
+/* 🌸 EYE */
+.result-header .eye{
+    background:linear-gradient(135deg,#fbcfe8,#f9a8d4);
+    color:#be185d;
 }
 </style>
 
@@ -100,40 +362,222 @@ button:hover {
 
 <div class="container">
 
-<!-- 🔥 Logout -->
-<div class="logout">
-    <a href="/logout" onclick="return confirm('Are you sure you want to logout?')">
-        Logout 🚪
-    </a>
+<div class="navbar">
+    <div class="nav-left">
+        🧠 Autism System
+    </div>
+
+    <div class="nav-right">
+        <div class="user-info">
+            👋 Welcome, <span class="username">{{ username }}</span>
+        </div>
+
+        <a href="/logout" class="logout">Logout</a>
+    </div>
 </div>
 
 <!-- 📊 Info -->
-<h2>{{ diagnosis }}</h2>
-<p>Severity: {{ percentage }}%</p>
-<p>Eye Contact: {{ eye_percent }}%</p>
+<div class="result-header">
+
+    <div class="title">
+        📋 <span>{{ diagnosis }}</span>
+    </div>
+
+    <div class="stats">
+
+        <div class="stat severity">
+            <div class="icon">📈</div>
+            <div>
+                <p>Severity</p>
+                <h3>{{ "%.2f"|format(percentage) }}%</h3>
+            </div>
+        </div>
+
+        <div class="stat eye">
+            <div class="icon">👁️</div>
+            <div>
+                <p>Eye Contact</p>
+                <h3>{{ "%.2f"|format(eye_percent) }}%</h3>
+            </div>
+        </div>
+
+    </div>
+
+</div>
 
 <!-- 💬 CHAT -->
 <div id="chatBox">
 
     {% for msg in chat_history %}
-        {% if msg.role == "user" %}
-            <div class="user-msg">{{ msg.content }}</div>
-        {% else %}
-            <div class="ai-msg">{{ msg.content }}</div>
-        {% endif %}
-    {% endfor %}
 
+    {% if msg.type == "audio" %}
+        <div class="user-msg">
+            <audio controls src="{{ msg.url }}"></audio>
+        </div>
+
+    {% elif msg.type == "ai" %}
+        <div class="ai-msg">{{ msg.text }}</div>
+
+    {% elif msg.role == "user" %}
+        <div class="user-msg">{{ msg.content }}</div>
+
+    {% else %}
+        <div class="ai-msg">{{ msg.content }}</div>
+
+    {% endif %}
+
+{% endfor %}
 </div>
 
 <!-- ✏️ Input -->
 <div class="input-area">
     <input id="question" placeholder="Type your message...">
     <button onclick="askAI()">Send</button>
+   <div class="recorder">
+
+    <button id="recordBtn" onclick="toggleRecording()" class="mic-btn">
+        🎤
+    </button>
+
+    <button onclick="sendRecording()" class="send-btn">
+        ➤
+    </button>
+
+</div>
+
+<div id="recordStatus" class="status"></div>
+<div id="wave" class="wave"></div>
+
+<!-- waveform -->
+<div id="wave" style="height:25px; margin-top:10px;"></div>
 </div>
 
 </div>
 
 <script>
+let recorder;
+let audioChunks = [];
+let isRecording = false;
+let stream;
+
+let waveInterval;
+
+// 🎶 WAVE START
+function startWave(){
+    let wave = document.getElementById("wave");
+
+    waveInterval = setInterval(() => {
+        let bars = "";
+
+        for(let i=0;i<25;i++){
+            let h = Math.random() * 25 + 5;
+
+            bars += `<span style="
+                display:inline-block;
+                width:3px;
+                height:${h}px;
+                background:red;
+                margin:1px;
+                border-radius:2px;
+            "></span>`;
+        }
+
+        wave.innerHTML = bars;
+    }, 120);
+}
+
+// 🎶 WAVE STOP
+function stopWave(){
+    clearInterval(waveInterval);
+    document.getElementById("wave").innerHTML = "";
+}
+
+
+// 🎤 START / STOP
+async function toggleRecording(){
+
+    let btn = document.getElementById("recordBtn");
+    let status = document.getElementById("recordStatus");
+
+    if(!isRecording){
+
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        recorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        recorder.ondataavailable = e => {
+            audioChunks.push(e.data);
+        };
+
+        recorder.start();
+
+        isRecording = true;
+
+        btn.innerText = "⏹";
+        btn.classList.add("recording");
+
+
+        status.innerText = "🔴 Recording...";
+
+        startWave();
+
+    } else {
+
+        recorder.stop();
+
+        isRecording = false;
+
+        btn.innerText = "🎤";
+        btn.classList.remove("recording");
+
+        status.innerText = "⏸ Stopped";
+
+        stopWave();
+    }
+}
+
+
+// 📤 SEND
+async function sendRecording(){
+
+    let status = document.getElementById("recordStatus");
+
+    if(!audioChunks.length){
+        alert("No recording ❌");
+        return;
+    }
+
+    status.innerText = "📤 Sending...";
+
+    let blob = new Blob(audioChunks, { type: 'audio/webm' });
+
+    let formData = new FormData();
+    formData.append("audio", blob);
+
+    let res = await fetch("/voice_ai", {
+        method: "POST",
+        body: formData
+    });
+
+    let data = await res.json();
+
+    // 🎧 عرض الصوت
+    addAudioMessage(data.audio_url);
+
+    // 🤖 رد AI
+    addMessage("ai", data.answer);
+
+    status.innerText = "✅ Sent";
+
+    setTimeout(()=>{
+        status.innerText = "";
+    },2000);
+
+    audioChunks = [];
+}
+   
+
 async function askAI(){
 
     let input = document.getElementById("question");
@@ -176,6 +620,96 @@ async function askAI(){
     box.appendChild(ai);
 
     box.scrollTop = box.scrollHeight;
+}
+function addMessage(role, text){
+    let box = document.getElementById("chatBox");
+
+    if(!box){
+        alert("chatBox NOT FOUND ❌");
+        return;
+    }
+
+    let div = document.createElement("div");
+    div.className = role === "user" ? "user-msg" : "ai-msg";
+    div.innerText = text;
+
+    box.appendChild(div);
+
+    box.scrollTop = box.scrollHeight;
+}
+function addAudioMessage(url){
+    let box = document.getElementById("chatBox");
+
+    let index = box.children.length; // 👈 ترتيب الرسالة
+
+    let div = document.createElement("div");
+    div.className = "user-msg";
+
+    let audio = document.createElement("audio");
+    audio.controls = true;
+    audio.src = url;
+
+    div.appendChild(audio);
+
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+
+    // 👇 نحفظ الصوت + مكانه
+    saveMessage("audio", { url, index });
+}
+
+function saveMessage(type, content){
+    let history = JSON.parse(localStorage.getItem("chatHistory")) || [];
+
+    history.push({ type, content });
+
+    localStorage.setItem("chatHistory", JSON.stringify(history));
+}
+
+
+function loadHistory(){
+    let history = JSON.parse(localStorage.getItem("chatHistory")) || [];
+
+    let box = document.getElementById("chatBox");
+
+    history.forEach(msg => {
+
+        // 🎧 AUDIO
+        if(msg.type === "audio"){
+            let div = document.createElement("div");
+            div.className = "user-msg";
+
+            let audio = document.createElement("audio");
+            audio.controls = true;
+            audio.src = msg.content.url;
+
+            div.appendChild(audio);
+
+            // 👇 نحطه في نفس مكانه
+            let position = msg.content.index;
+
+            if(position >= box.children.length){
+                box.appendChild(div);
+            } else {
+                box.insertBefore(div, box.children[position]);
+            }
+        }
+
+        // 💬 TEXT (سيبيه زي ما هو)
+        else if(msg.type === "text"){
+            let div = document.createElement("div");
+            div.className = msg.content.role === "user" ? "user-msg" : "ai-msg";
+            div.innerText = msg.content.text;
+
+            box.appendChild(div);
+        }
+
+    });
+}
+
+// 👇 دي لازم تحتهم
+window.onload = function(){
+    loadHistory();
 }
 </script>
 

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Autism Report</title>
+
+<style>
+body {
+    font-family: 'Segoe UI';
+    background:white;
+    margin:0;
+    padding:30px;
+}
+
+/* MAIN */
+.container {
+    max-width:1000px;
+    margin:auto;
+}
+
+/* TITLE */
+h1 {
+    margin-bottom:20px;
+}
+
+/* TOP CARDS */
+.top-cards {
+    display:flex;
+    gap:20px;
+    margin-bottom:25px;
+}
+
+.card {
+    flex:1;
+    padding:20px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    background:white;
+}
+
+.blue { background:#e3f2fd; }
+.green { background:#e8f5e9; }
+.purple { background:#ede7f6; }
+
+/* GRID */
+.grid {
+    display:grid;
+    grid-template-columns: 2fr 1fr;
+    gap:20px;
+}
+
+/* LEFT */
+.left {
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    border:1px solid #ddd;
+}
+
+/* ROW */
+.row {
+    display:flex;
+    align-items:center;
+    margin:10px 0;
+    gap:10px;
+}
+
+.row span:first-child {
+    width:120px;
+}
+
+.bar {
+    flex:1;
+    height:8px;
+    background:#eee;
+    border-radius:10px;
+}
+
+.fill {
+    height:100%;
+    border-radius:10px;
+}
+
+/* RIGHT */
+.right {
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+.box {
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    font-size:14px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+```
+<h1>Diagnosis: {{ diagnosis }}</h1>
+
+<!-- TOP -->
+<div class="top-cards">
+
+    <div class="card blue">
+        <h3>Autism Indicators</h3>
+        <h2>{{ percentage }}%</h2>
+    </div>
+
+    <div class="card green">
+        <h3>Eye Contact</h3>
+        <h2>{{ eye_percent }}%</h2>
+    </div>
+
+    <div class="card purple">
+        <h3>CARS Score</h3>
+        <h2>{{ (percentage * 0.6) | round(1) }} / 60</h2>
+    </div>
+
+</div>
+
+<!-- GRID -->
+<div class="grid">
+
+    <!-- LEFT -->
+    <div class="left">
+
+        <h2>Detailed Scores</h2>
+
+        {% for k,v in categories.items() %}
+        {% set percent = (v / 4 * 100) | round(0) %}
+
+        <div class="row">
+            <span>{{ k }}</span>
+
+            <div class="bar">
+                <div class="fill"
+                style="width:{{ percent }}%;
+                background:
+                {% if percent < 40 %}#4caf50
+                {% elif percent < 70 %}#ff9800
+                {% else %}#f44336
+                {% endif %}">
+                </div>
+            </div>
+
+            <span>{{ percent }}%</span>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+
+        <div class="box">
+            <b>What do the scores mean?</b><br><br>
+            Normal<br>
+            Mild<br>
+            Moderate<br>
+            Severe
+        </div>
+
+        <div class="box">
+            <b>CARS Interpretation</b><br><br>
+            15 - 30 => Normal<br>
+30 - 36.5 => Mild<br>
+37 - 60 => Severe
+        </div>
+
+        <div class="box">
+            <b>Eye Contact Interpretation</b><br><br>
+           70 - 100% => Good<br>
+50 - 69% => Moderate<br>
+30 - 49% => Weak<br>
+0 - 29% => Very Low
+        </div>
+
+        <div class="box">
+            <b>Autism Indicators Interpretation</b><br><br>
+           0 - 25% => Low (Normal)<br>
+26 - 50% => Mild<br>
+51 - 75% => Moderate<br>
+76 - 100% => High
+        </div>
+
+    </div>
+
+</div>
+```
+
+</div>
+
+</body>
+</html>

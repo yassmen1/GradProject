@@ -1,62 +1,235 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>Register</title>
 
 <style>
+
+/* RESET */
 body {
-    font-family: 'Segoe UI';
-    background: linear-gradient(135deg,#e3f2fd,#fce4ec);
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+}
+
+/* SPLIT SCREEN */
+.container {
     display:flex;
-    justify-content:center;
-    align-items:center;
     height:100vh;
 }
 
-.card {
-    background:white;
-    padding:40px;
-    border-radius:20px;
-    width:350px;
-    text-align:center;
-    box-shadow:0 10px 30px rgba(0,0,0,0.1);
+/* LEFT SIDE */
+.left {
+    width:50%;
+    background: linear-gradient(135deg,#eef2ff,#fce7f3);
+    padding:100px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
 }
 
+/* TITLE */
+.left h1 {
+    font-size:52px;
+    font-weight:800;
+}
+
+.gradient-text {
+    background: linear-gradient(90deg,#4facfe,#a855f7);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+/* DESCRIPTION */
+.left p {
+    color:#6b7280;
+    font-size:18px;
+    margin-top:15px;
+    max-width:500px;
+    line-height:1.6;
+}
+
+/* FEATURES */
+.feature {
+    display:flex;
+    align-items:center;
+    margin-top:20px;
+}
+
+.icon {
+    width:40px;
+    height:40px;
+    border-radius:10px;
+    background:#f8fafc;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-right:15px;
+}
+
+.feature-text b {
+    display:block;
+}
+
+.feature-text span {
+    color:#777;
+    font-size:14px;
+}
+
+/* RIGHT SIDE */
+.right {
+    width:50%;
+    background:#ffffff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+/* CARD */
+.card {
+    width:380px;
+    background:#fff;
+    padding:40px;
+    border-radius:25px;
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.08);
+}
+
+.card h2 {
+    margin-bottom:10px;
+}
+
+.subtitle {
+    color:#888;
+    margin-bottom:20px;
+}
+
+/* INPUTS */
 input {
     width:100%;
-    padding:12px;
+    padding:14px;
     margin:10px 0;
-    border-radius:10px;
-    border:1px solid #ccc;
+    border-radius:12px;
+    border:1px solid #ddd;
+    outline:none;
 }
 
+input:focus {
+    border-color:#7c3aed;
+}
+
+/* BUTTON */
 button {
     width:100%;
-    padding:12px;
-    background:#4caf50;
+    padding:14px;
+    margin-top:10px;
+    background: linear-gradient(90deg,#22c55e,#16a34a);
     color:white;
     border:none;
-    border-radius:10px;
+    border-radius:12px;
+    font-size:16px;
+    cursor:pointer;
 }
 
 button:hover {
-    background:#2e7d32;
+    transform:scale(1.03);
 }
-</style>
 
+/* OR TEXT */
+.or {
+    margin:20px 0;
+    font-size:14px;
+    color:#999;
+}
+
+/* LINK */
+a {
+    color:#3b82f6;
+    text-decoration:none;
+}
+
+/* OPTIONAL LINE IN CENTER */
+.container::after {
+    content:"";
+    position:absolute;
+    left:50%;
+    top:0;
+    width:1px;
+    height:100%;
+    background:#eee;
+}
+
+</style>
 </head>
 
 <body>
 
-<div class="card">
-    <h2>Create Account 📝</h2>
+<div class="container">
 
-    <form method="post">
-        <input name="username" placeholder="Username" required>
-        <input name="password" type="password" placeholder="Password" required>
+    <!-- LEFT -->
+    <div class="left">
 
-        <button>Register</button>
-    </form>
+        <h1>
+            Join Smart <span class="gradient-text">System</span> 🧠
+        </h1>
+
+        <p>
+            Create your account to start monitoring, analyzing behavior,
+            and receiving smart insights about your child's condition.
+        </p>
+
+        <div class="feature">
+            <div class="icon">🚀</div>
+            <div class="feature-text">
+                <b>Real-time monitoring</b>
+                <span>Live tracking and instant alerts</span>
+            </div>
+        </div>
+
+        <div class="feature">
+            <div class="icon">📊</div>
+            <div class="feature-text">
+                <b>Smart analytics</b>
+                <span>AI insights and advanced reports</span>
+            </div>
+        </div>
+
+        <div class="feature">
+            <div class="icon">🧠</div>
+            <div class="feature-text">
+                <b>AI diagnosis</b>
+                <span>Intelligent assessment and predictions</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+
+        <div class="card">
+
+            <h2>Create Account</h2>
+            <p class="subtitle">Register to continue</p>
+
+            <form method="POST">
+                <input name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+
+                <button>Register</button>
+            </form>
+
+            <div class="or">or</div>
+
+            <p>
+                Already have account?
+                <a href="/login">Login</a>
+            </p>
+
+        </div>
+
+    </div>
+
 </div>
 
 </body>
