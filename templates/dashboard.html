@@ -1,122 +1,408 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
 
     <style>
-        body {
-            font-family: Arial;
-            background: #f4f6f9;
-            text-align: center;
-        }
+body {
+    font-family: 'Segoe UI';
+    margin:0;
+    background: linear-gradient(135deg,#eef2ff,#fce7f3);
+    margin: 0;
+    padding-top: 70px;
+}
 
-        h1 {
-            margin-top: 20px;
-        }
+/* 🟦 layout */
+.container {
+    display:flex;
+    justify-content:center;   /* مهم */
+    align-items:center;
+    gap:25px;
+    margin-top:60px;
+    flex-wrap:wrap;
+}
 
-        .container {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 40px;
-            flex-wrap: wrap;
-        }
+/* 🟪 cards */
+.card {
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(10px);
+    padding:25px;
+    border-radius:20px;
+    width:230px;
+    box-shadow:0 15px 35px rgba(0,0,0,0.08);
+    transition:0.3s;
+    text-align:left;
+}
 
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            width: 200px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
 
-        .value {
-            font-size: 28px;
-            margin-top: 10px;
-            color: #333;
-        }
+.card:hover {
+    transform: translateY(-8px) scale(1.04);
+}
 
-        .title {
-            font-size: 18px;
-            color: #777;
-        }
+.title {
+    font-size:16px;
+    color:#777;
+}
 
-        .alerts {
-            margin-top: 30px;
-            color: red;
-            font-weight: bold;
-        }
+.value {
+    font-size:30px;
+    margin-top:10px;
+    font-weight:bold;
+}
 
-        .state {
-            margin-top: 20px;
-            font-size: 22px;
-            color: green;
-        }
-    </style>
+/* 🎨 dynamic colors */
+.green { color:#4caf50; }
+.red { color:#e53935; }
+.yellow { color:#ff9800; }
+
+/* 🧠 state */
+.state {
+    margin-top:20px;
+    font-size:22px;
+    font-weight:bold;
+}
+
+/* 🚨 alerts */
+.alerts {
+    margin-top:30px;
+    background:#ffebee;
+    color:#c62828;
+    padding:15px;
+    border-radius:12px;
+    display:inline-block;
+    min-width:300px;
+}
+h1 {
+    text-align:center;
+    margin-top:40px;
+    font-size:32px;
+}
+
+.state {
+    text-align:center;
+    margin-top:25px;
+    font-size:22px;
+    font-weight:bold;
+}
+
+.alert-box {
+    margin:30px auto;
+    padding:15px 25px;
+    border-radius:15px;
+    width:320px;
+    text-align:center;
+    font-weight:bold;
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+    transition:0.3s;
+}
+
+/* 🟢 success */
+.success {
+    background:#e8f5e9;
+    color:#2e7d32;
+}
+
+/* 🔴 danger */
+.danger {
+    background:#ffebee;
+    color:#c62828;
+}
+#alerts {
+    display:flex;
+    justify-content:center;
+}
+/* ✨ animation */
+.alert-box:hover {
+    transform:scale(1.05);
+}
+.card:nth-child(1){ border-left:5px solid #1976d2; }
+.card:nth-child(2){ border-left:5px solid #4caf50; }
+.card:nth-child(3){ border-left:5px solid #ff9800; }
+.card:nth-child(4){ border-left:5px solid #9c27b0; }
+.status-container {
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    margin-top:30px;
+    flex-wrap:wrap;
+}
+
+.status-card {
+    background:white;
+    padding:20px 30px;
+    border-radius:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+    min-width:220px;
+    text-align:center;
+    transition:0.3s;
+}
+
+.status-title {
+    font-size:14px;
+    color:#777;
+}
+
+.status-value {
+    font-size:22px;
+    font-weight:bold;
+    margin-top:5px;
+}
+
+/* 🎨 colors */
+.normal { color:#4caf50; }
+.stress { color:#ff9800; }
+.meltdown { color:#e53935; }
+.alert-box {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* 🔥 NAVBAR */
+.navbar {
+    position:fixed;   /* 👈 يخليه ثابت فوق */
+    top:0;
+    left:0;
+    width:100%;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:15px 40px;
+
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(10px);
+
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+    z-index:1000;
+
+    box-sizing: border-box; /* 👈 يحل مشكلة القطع */
+}
+
+/* LOGO */
+.logo {
+    font-weight:bold;
+    font-size:18px;
+}
+
+/* RIGHT SIDE */
+.nav-right {
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+/* WELCOME */
+.welcome {
+    font-weight:500;
+    color:#444;
+}
+
+/* LOGOUT */
+.logout {
+    background:#ff4d4d;
+    color:white;
+    padding:6px 14px;
+    border-radius:8px;
+    text-decoration:none;
+    font-size:13px;
+    white-space:nowrap;
+    transition:0.3s;
+}
+
+.logout:hover {
+    background:#e53935;
+}
+.lang-btn {
+    background:#eee;
+    padding:6px 12px;
+    border-radius:8px;
+    text-decoration:none;
+    font-size:13px;
+}
+
+.lang-btn:hover {
+    background:#ddd;
+}
+</style>
 </head>
 <body>
+<!-- 🔝 NAVBAR -->
+<div class="navbar">
 
-    <h1>📊 Live Sensor Dashboard</h1>
+    <div class="nav-left">
+        🧠 <span class="title">Autism System</span>
+    </div>
+
+    <div class="nav-right">
+
+        <div class="user-info">
+            👋 {{ welcome_text }}, <span class="username">{{ username }}</span>
+        </div>
+
+        <!-- 🌍 LANGUAGE -->
+        <a href="/set_lang/en" class="lang-btn">EN</a>
+        <a href="/set_lang/ar" class="lang-btn">AR</a>
+
+        <a href="/logout" class="logout">{{ logout_text }}</a>
+
+    </div>
+
+</div>
+</div>
+    <h1 style="margin-top:30px;">{{ live_text }}🧠</h1>
 
     <div class="container">
 
         <div class="card">
-            <div class="title">Heart Rate</div>
+            <div class="title">{{ hr_text }}</div>
             <div id="hr" class="value">0</div>
         </div>
 
         <div class="card">
-            <div class="title">Acceleration</div>
+            <div class="title">{{ acc_text }}</div>
             <div id="acc" class="value">0</div>
         </div>
 
         <div class="card">
-            <div class="title">Microphone</div>
+            <div class="title">{{ mic_text }}</div>
             <div id="mic" class="value">0</div>
         </div>
 
         <div class="card">
-            <div class="title">Frequency</div>
+            <div class="title">{{ freq_text }}</div>
             <div id="freq" class="value">0</div>
         </div>
 
     </div>
 
-    <div class="state">
-        State: <span id="state">Normal</span>
+    <div class="status-container">
+
+    <div class="status-card" id="stateBox">
+        <div class="status-title">🧠 {{ state_text }}e</div>
+        <div id="state" class="status-value">Normal</div>
     </div>
 
-    <div class="alerts" id="alerts">
+    <div class="status-card" id="predictionBox">
+        <div class="status-title">🔮 {{ prediction_text }}</div>
+        <div id="prediction" class="status-value">-</div>
+    </div>
+
+</div>
+
+    <div id="alerts"></div>
     </div>
 
     <script>
-        function updateData() {
-            fetch("/get_data")
-                .then(response => response.json())
-                .then(data => {
+        let lastAlerts = "";
+function getColor(value, type){
+    if(type === "hr"){
+        if(value < 60) return "red";
+        if(value < 90) return "yellow";
+        return "green";
+    }
 
-                    document.getElementById("hr").innerText = data.hr;
-                    document.getElementById("acc").innerText = data.acc;
-                    document.getElementById("mic").innerText = data.mic;
-                    document.getElementById("freq").innerText = data.freq;
+    if(type === "acc"){
+        return value > 15 ? "red" : "green";
+    }
 
-                    document.getElementById("state").innerText = data.state;
+    if(type === "mic"){
+        return value > 70 ? "red" : "green";
+    }
 
-                    let alertsDiv = document.getElementById("alerts");
-                    alertsDiv.innerHTML = "";
+    return "green";
+}
 
-                    if (data.alerts && data.alerts.length > 0) {
-                        data.alerts.forEach(a => {
-                            alertsDiv.innerHTML += "<div>" + a + "</div>";
-                        });
-                    }
-                })
-                .catch(err => console.log("Error:", err));
-        }
+function updateData() {
+    fetch("/get_data")
+        .then(res => res.json())
+        .then(data => {
 
-        setInterval(updateData, 1000);
-    </script>
+            // ❤️ HR
+            let hr = document.getElementById("hr");
+            hr.innerText = data.hr;
+            hr.className = "value " + getColor(data.hr,"hr");
+
+            // 🏃 ACC
+            let acc = document.getElementById("acc");
+            acc.innerText = data.acc;
+            acc.className = "value " + getColor(data.acc,"acc");
+
+            // 🎤 MIC
+            let mic = document.getElementById("mic");
+            mic.innerText = data.mic;
+            mic.className = "value " + getColor(data.mic,"mic");
+
+            // 📡 FREQ
+            document.getElementById("freq").innerText = data.freq;
+
+            // 🧠 STATE
+            document.getElementById("state").innerText = data.state;
+
+            let box = document.getElementById("stateBox");
+            box.style.background = "#ffffff";
+
+            if(data.state === "Stress"){
+                box.style.background = "#fff3cd";
+            }
+            if(data.state === "Meltdown"){
+                box.style.background = "#ffebee";
+            }
+
+            // 🔮 Prediction
+            document.getElementById("prediction").innerText = data.prediction;
+
+            // 🚨 ALERTS
+            let alertsDiv = document.getElementById("alerts");
+
+// 🧠 نحول alerts لنص عشان نقارن
+let currentAlerts = JSON.stringify(data.alerts);
+
+// ✋ لو مفيش تغيير → متعملش حاجة
+if(currentAlerts === lastAlerts) return;
+
+// 🔄 حدّث القيمة
+lastAlerts = currentAlerts;
+
+// 👇 هنا نرسم من جديد
+alertsDiv.innerHTML = "";
+
+if(data.alerts && data.alerts.length > 0){
+
+    data.alerts.forEach(a=>{
+        alertsDiv.innerHTML += `
+            <div class="alert-box danger">
+                🚨 ${a}
+            </div>
+        `;
+    });
+
+} else {
+
+    alertsDiv.innerHTML = `
+        <div class="alert-box success">
+            ✅ {{ no_alerts }}
+        </div>
+    `;
+}
+
+        })
+        .catch(err => console.log(err));
+}
+
+// 🔥 مهم: هنا برا الفنكشن
+setInterval(updateData, 1000);
+</script>
 
 </body>
 </html>

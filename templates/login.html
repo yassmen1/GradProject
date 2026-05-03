@@ -1,77 +1,264 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
 <head>
 <title>Login</title>
 
 <style>
+
 body {
-    font-family: 'Segoe UI';
-    background: linear-gradient(135deg,#e3f2fd,#fce4ec);
-    display:flex;
-    justify-content:center;
-    align-items:center;
+    margin:0;
+    font-family:'Segoe UI';
     height:100vh;
+    display:flex;
 }
 
-.card {
-    background:white;
-    padding:40px;
-    border-radius:20px;
-    width:350px;
-    text-align:center;
-    box-shadow:0 10px 30px rgba(0,0,0,0.1);
+/* 🟣 LEFT SIDE */
+.left {
+    flex:1;
+    background: linear-gradient(135deg,#e0e7ff,#fbcfe8);
+    padding:80px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
 }
 
-h2 {
+.left h1 {
+    font-size:50px;
     margin-bottom:20px;
 }
 
+.gradient {
+    background: linear-gradient(to right,#2563eb,#9333ea);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.left p {
+    color:#555;
+    margin-bottom:30px;
+    font-size:18px;
+}
+
+/* FEATURES */
+.feature {
+    display:flex;
+    align-items:center;
+    margin:15px 0;
+    font-size:16px;
+}
+
+/* 🟦 RIGHT SIDE */
+.right {
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f8fafc;
+}
+
+/* LOGIN CARD */
+.card {
+    width:350px;
+    padding:40px;
+    background:white;
+    border-radius:20px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.1);
+    text-align:center;
+}
+
+.card h2 {
+    margin-bottom:10px;
+}
+
+.subtitle {
+    color:#777;
+    margin-bottom:20px;
+}
+
+/* INPUT */
 input {
     width:100%;
     padding:12px;
     margin:10px 0;
     border-radius:10px;
-    border:1px solid #ccc;
+    border:1px solid #ddd;
 }
 
+/* BUTTON */
 button {
     width:100%;
     padding:12px;
-    background:#1976d2;
+    background: linear-gradient(to right,#2563eb,#4f46e5);
     color:white;
     border:none;
     border-radius:10px;
-    font-size:16px;
     cursor:pointer;
+    margin-top:10px;
+    transition:0.3s;
 }
 
 button:hover {
-    background:#0d47a1;
+    transform:scale(1.05);
 }
 
+/* LINK */
 a {
     display:block;
     margin-top:15px;
     color:#1976d2;
     text-decoration:none;
 }
-</style>
+.card {
+    animation: fadeIn 0.6s ease;
+}
 
+@keyframes fadeIn {
+    from {opacity:0; transform:translateY(20px);}
+    to {opacity:1;}
+}
+.features {
+    margin-top:30px;
+}
+
+.feature-card {
+    display:flex;
+    align-items:center;
+    gap:15px;
+    margin:20px 0;
+}
+
+/* icon box */
+.icon {
+    width:50px;
+    height:50px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:22px;
+
+    background: rgba(255,255,255,0.6);
+    border-radius:15px;
+
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+/* title */
+.feature-card h4 {
+    margin:0;
+    font-size:16px;
+}
+
+/* description */
+.feature-card p {
+    margin:3px 0 0;
+    font-size:14px;
+    color:#666;
+}
+body[dir="rtl"] {
+    direction: rtl;
+}
+
+body[dir="rtl"] .left {
+    text-align: right;
+}
+
+body[dir="rtl"] .feature-card {
+    flex-direction: row-reverse;
+}
+
+body[dir="rtl"] input {
+    text-align: right;
+}
+.top-bar {
+    position: absolute;
+    top:20px;
+    right:30px;
+    display:flex;
+    gap:10px;
+}
+
+.top-bar a {
+    background:#eee;
+    padding:6px 12px;
+    border-radius:8px;
+    text-decoration:none;
+    color:#333;
+    font-size:13px;
+}
+
+.top-bar a:hover {
+    background:#ddd;
+}
+body[dir="rtl"] .top-bar {
+    left:30px;
+    right:auto;
+}
+</style>
 </head>
 
 <body>
+<div class="top-bar">
+    <a href="/set_lang/en">EN</a>
+    <a href="/set_lang/ar">AR</a>
+</div>
+<!-- LEFT -->
+<div class="left">
 
-<div class="card">
-    <h2>Login 👋</h2>
+    <h1>
+        {{ title_main_line1 }} <br>
+        <span class="gradient">{{ title_main_line2 }}</span>
+    </h1>
 
-    <form method="post">
-        <input name="username" placeholder="Username" required>
-        <input name="password" type="password" placeholder="Password" required>
+    <p>{{ description }}</p>
 
-        <button>Login</button>
-    </form>
+    <div class="features">
 
-    <a href="/register">Create account</a>
+    <div class="feature-card">
+        <div class="icon">🚀</div>
+        <div>
+            <h4>{{ f1_title }}</h4>
+            <p>{{ f1_desc }}</p>
+        </div>
+    </div>
+
+    <div class="feature-card">
+        <div class="icon">📊</div>
+        <div>
+            <h4>{{ f2_title }}</h4>
+            <p>{{ f2_desc }}</p>
+        </div>
+    </div>
+
+    <div class="feature-card">
+        <div class="icon">🧠</div>
+        <div>
+            <h4>{{ f3_title }}</h4>
+            <p>{{ f3_desc }}</p>
+        </div>
+    </div>
+
+</div>
+
+</div>
+
+<!-- RIGHT -->
+<div class="right">
+
+    <div class="card">
+
+        <h2>{{ login_title }} 🧠</h2>
+        <p class="subtitle">{{ subtitle }}</p>
+
+        <form method="post">
+            <input name="username" placeholder="👤 {{ username_text }}" required>
+            <input name="password" type="password" placeholder="🔒 {{ password_text }}" required>
+            <button type="submit">{{ btn_text or 'Login' }}</button>
+        </form>
+
+        <a href="/register">{{ register_text }}</a>
+
+    </div>
+
 </div>
 
 </body>
