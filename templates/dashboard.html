@@ -234,6 +234,21 @@ h1 {
 .lang-btn:hover {
     background:#ddd;
 }
+.chart-container {
+    width: 80%;
+    max-width: 800px;
+    margin: 40px auto;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+canvas {
+    height: 300px !important;
+}
+
+
 </style>
 </head>
 <body>
@@ -378,6 +393,12 @@ lastAlerts = currentAlerts;
 alertsDiv.innerHTML = "";
 
 if(data.alerts && data.alerts.length > 0){
+    // 🔥 تحويل الكود لكلام مفهوم
+    if(a === "HIGH_ACC") a = "⚠️ Child moving too much";
+    if(a === "LOUD_MIC") a = "⚠️ Loud crying";
+    if(a === "LOW_HR") a = "⚠️ Low heart rate";
+    if(a === "STRESS") a = "😟 Child under stress";
+    if(a === "MELTDOWN") a = "🚨 Possible meltdown";
 
     data.alerts.forEach(a=>{
         alertsDiv.innerHTML += `
@@ -403,6 +424,60 @@ if(data.alerts && data.alerts.length > 0){
 // 🔥 مهم: هنا برا الفنكشن
 setInterval(updateData, 1000);
 </script>
+<div class="chart-container">
+    <canvas id="chart"></canvas>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+
+let chart;
+
+function loadChart() {
+    fetch("/history")
+    .then(res => res.json())
+    .then(data => {
+
+        let labels = data.map((_, i) => i);
+
+        let hr = data.map(d => d.hr);
+        let acc = data.map(d => d.acc);
+        let mic = data.map(d => d.mic);
+
+        const ctx = document.getElementById("chart").getContext("2d");
+
+        if(!chart){
+    chart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [
+                { label: "HR", data: hr, tension: 0.4 },
+                { label: "ACC", data: acc, tension: 0.4 },
+                { label: "MIC", data: mic, tension: 0.4 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+else {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = hr;
+    chart.data.datasets[1].data = acc;
+    chart.data.datasets[2].data = mic;
+
+    chart.update();
+}
+    });
+    
+}
+
+// كل 2 ثانية
+setInterval(loadChart, 2000);
+
+</script>
 </body>
 </html>
