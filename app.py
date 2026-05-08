@@ -150,7 +150,15 @@ def analyze_sensor(hr, acc, mic):
     if high_mic_counter >= HIGH_MIC_LIMIT:
         alerts.append("LOUD_MIC")
         high_mic_counter = 0
+    # 🔥 SMART COMBINED ALERTS
 
+    # 🧠 Stress (نبض + صوت)
+    if hr > 130 and mic > 70:
+        alerts.append("STRESS")
+
+    # 🚨 Meltdown (حركة + صوت)
+    if acc > 15 and mic > 70:
+        alerts.append("MELTDOWN")
     return alerts
 
 
@@ -176,10 +184,18 @@ def predict_future():
 
 
 def predict_state(hr, acc, mic):
-    if hr > 130 and mic > 60:
+    if hr < 90 and acc < 12 and mic < 10:
+        return "Calm"
+
+    if acc > 12 and mic > 20:
+        return "Active"
+
+    if hr > 120 and mic > 60:
         return "Stress"
+
     if acc > 15 and mic > 70:
         return "Meltdown"
+
     return "Normal"
 
 
@@ -209,11 +225,11 @@ def sensor():
     sensor_history.append({"hr": hr, "acc": acc, "mic": mic})
 
     # خدي آخر 10 بس
-    if len(sensor_history) > 10:
+    if len(sensor_history) > 50:
         sensor_history.pop(0)
 
     alerts = analyze_sensor(hr, acc, mic)
-    state = predict_state(hr, acc, mic)
+    state = data.get("state", predict_state(hr, acc, mic))
 
     # 🧠 prediction جديد
     prediction = predict_future()
@@ -246,7 +262,9 @@ def sensor():
 @app.route("/get_data")
 def get_data():
     return jsonify(sensor_data)
-
+@app.route("/history")
+def history():
+    return jsonify(sensor_history)
 
 # ---------------- QUESTIONS ----------------
 questions_en = [
