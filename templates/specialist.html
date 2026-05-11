@@ -365,6 +365,26 @@ button:hover{
 .lang-btn:hover {
     background:#ddd;
 }
+.bottom-nav{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    margin-top:20px;
+
+}
+.nav-btn{
+    background:#6366f1;
+    color:white;
+    padding:8px 18px;
+    border-radius:10px;
+    text-decoration:none;
+    font-size:14px;
+    transition:0.3s;
+}
+
+.nav-btn:hover{
+    background:#7c3aed;
+}
 </style>
 
 </head>
@@ -458,6 +478,9 @@ button:hover{
     <button onclick="sendRecording()" class="send-btn">
         ➤
     </button>
+    
+
+</div>
 
 </div>
 
@@ -469,7 +492,15 @@ button:hover{
 </div>
 
 </div>
+<div class="bottom-nav">
 
+    <a href="/" class="nav-btn">🏠 Home</a>
+
+    <a href="javascript:history.back()" class="nav-btn">
+        ⬅ Back
+    </a>
+
+</div>
 <script>
 let recorder;
 let audioChunks = [];
@@ -671,62 +702,11 @@ function addAudioMessage(url){
     box.scrollTop = box.scrollHeight;
 
     // 👇 نحفظ الصوت + مكانه
-    saveMessage("audio", { url, index });
-}
-
-function saveMessage(type, content){
-    let history = JSON.parse(localStorage.getItem("chatHistory")) || [];
-
-    history.push({ type, content });
-
-    localStorage.setItem("chatHistory", JSON.stringify(history));
+    
 }
 
 
-function loadHistory(){
-    let history = JSON.parse(localStorage.getItem("chatHistory")) || [];
 
-    let box = document.getElementById("chatBox");
-
-    history.forEach(msg => {
-
-        // 🎧 AUDIO
-        if(msg.type === "audio"){
-            let div = document.createElement("div");
-            div.className = "user-msg";
-
-            let audio = document.createElement("audio");
-            audio.controls = true;
-            audio.src = msg.content.url;
-
-            div.appendChild(audio);
-
-            // 👇 نحطه في نفس مكانه
-            let position = msg.content.index;
-
-            if(position >= box.children.length){
-                box.appendChild(div);
-            } else {
-                box.insertBefore(div, box.children[position]);
-            }
-        }
-
-        // 💬 TEXT (سيبيه زي ما هو)
-        else if(msg.type === "text"){
-            let div = document.createElement("div");
-            div.className = msg.content.role === "user" ? "user-msg" : "ai-msg";
-            div.innerText = msg.content.text;
-
-            box.appendChild(div);
-        }
-
-    });
-}
-
-// 👇 دي لازم تحتهم
-window.onload = function(){
-    loadHistory();
-}
 </script>
 
 </body>

@@ -233,10 +233,11 @@ body {
 .lang-btn:hover {
     background:#ddd;
 }
+.history{
+    background:#7c3aed;
+}
 </style>
 </head>
-
-<body>
 <body>
 
 <!-- 🔝 NAVBAR -->
@@ -403,6 +404,9 @@ body {
                 <a href="/dashboard" class="btn monitor">
     <span class="emoji">📊</span> {{ monitor_text }}
 </a>
+<a href="/history" class="btn history">
+    📜 History
+</a>
             </div>
 
         </div>
@@ -443,12 +447,27 @@ body {
                 {{ moderate_text }} → 75%-51<br>
                 {{ status_high }} → 100%-76
             </div>
+            <div style="margin-top:30px; text-align:center;">
+
+    <a href="/parent_info" style="
+    background:#8b5cf6;
+    color:white;
+    padding:14px 24px;
+    border-radius:14px;
+    text-decoration:none;
+    font-weight:bold;
+    display:block;
+    width:100%;
+    box-shadow:0 10px 25px rgba(139,92,246,0.3);
+    ">
+        🔄 Start Reassessment
+    </a>
+
+</div>
 
         </div>
 
     </div>
-
 </div>
-
 </body>
 </html>

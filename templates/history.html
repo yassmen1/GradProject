@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Assessment History</title>
+
+<style>
+
+body{
+    font-family:'Segoe UI';
+    margin:0;
+    padding:40px;
+    background:linear-gradient(135deg,#e0e7ff,#fce7f3);
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+}
+
+h1{
+    margin-bottom:30px;
+}
+
+.cards{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.top{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:15px;
+}
+
+.stats{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.box{
+    flex:1;
+    min-width:180px;
+    padding:15px;
+    border-radius:15px;
+    color:white;
+}
+
+.blue{
+    background:#3b82f6;
+}
+
+.pink{
+    background:#ec4899;
+}
+
+.purple{
+    background:#8b5cf6;
+}
+
+.date{
+    color:#666;
+    font-size:14px;
+}
+
+.navbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.logout{
+    background:#ef4444;
+    color:white;
+    padding:8px 14px;
+    border-radius:10px;
+    text-decoration:none;
+}
+
+.home{
+    background:#6366f1;
+    color:white;
+    padding:8px 14px;
+    border-radius:10px;
+    text-decoration:none;
+}
+.back{
+    background:#64748b;
+    color:white;
+    padding:8px 14px;
+    border-radius:10px;
+    text-decoration:none;
+    margin-right:8px;
+}
+canvas{
+    background:white;
+    border-radius:12px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="navbar">
+
+        <h2>🧠 Assessment History</h2>
+
+        <div>
+            <div>
+    <a href="/result" class="back">⬅ Back</a>
+
+    <a href="/" class="home">🏠 Home</a>
+
+    <a href="/logout" class="logout">Logout</a>
+</div>
+        </div>
+
+    </div>
+    <div style="
+background:#ffffff;
+opacity:1;
+padding:25px;
+border-radius:20px;
+margin-bottom:30px;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+">
+
+<h2 style="margin-bottom:20px;">
+📈 Progress Timeline
+</h2>
+
+<div style="height:400px;">
+    <canvas id="progressChart"></canvas>
+</div>
+
+</div>  
+
+    <div class="cards">
+
+        {% for a in assessments | reverse %}
+
+        <div class="card">
+
+            <div class="top">
+
+                <h3>{{ a.diagnosis }}</h3>
+
+                <div class="date">
+                    {{ a.date }}
+                </div>
+
+            </div>
+
+            <div class="stats">
+
+                <div class="box blue">
+                    <h4>Autism Indicators</h4>
+                    <h2>{{ "%.1f"|format(a.percentage) }}%</h2>
+                </div>
+
+                <div class="box pink">
+                    <h4>Eye Contact</h4>
+                    <h2>{{ "%.1f"|format(a.eye_percent) }}%</h2>
+                </div>
+
+                <div class="box purple">
+                    <h4>Emotion</h4>
+                    <h2>{{ a.emotion }}</h2>
+                </div>
+
+            </div>
+            
+            
+{% if not loop.last %}
+
+{% set prev = assessments[::-1][loop.index] %}
+
+{% set diff = (a.percentage - prev.percentage) | round(1) %}
+
+<div style="
+margin-top:18px;
+padding:14px;
+border-radius:14px;
+font-weight:bold;
+
+{% if diff < 0 %}
+background:#e8f5e9;
+color:#2e7d32;
+{% elif diff > 0 %}
+background:#ffebee;
+color:#c62828;
+{% else %}
+background:#f3f4f6;
+color:#555;
+{% endif %}
+">
+
+{% if diff < 0 %}
+🟢 {{ diff | abs }}% Improvement detected
+{% elif diff > 0 %}
+🔴 {{ diff }}% Increased indicators detected
+{% else %}
+⚪ No major changes detected
+{% endif %}
+
+</div>
+
+{% endif %}
+{% if a.ai_analysis %}
+
+<div style="
+margin-top:20px;
+padding:18px;
+border-radius:14px;
+background:#eef2ff;
+line-height:1.8;
+color:#333;
+">
+
+📊 Development Progress Report
+
+
+<p style="margin-top:10px;">
+{{ a.ai_analysis }}
+</p>
+
+</div>
+
+{% endif %}
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+
+const labels = [
+{% for a in assessments %}
+"{{ a.date[:10] }}",
+{% endfor %}
+];
+
+const autismData = [
+{% for a in assessments %}
+{{ a.percentage }},
+{% endfor %}
+];
+
+const eyeData = [
+{% for a in assessments %}
+{{ a.eye_percent }},
+{% endfor %}
+];
+
+const ctx = document.getElementById('progressChart');
+
+new Chart(ctx, {
+    type: 'line',
+
+    data: {
+        labels: labels,
+
+        datasets: [
+
+            {
+                label: 'Autism Indicators',
+                data: autismData,
+                borderWidth: 3,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 8
+            },
+
+            {
+                label: 'Eye Contact',
+                data: eyeData,
+                borderWidth: 3,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 8
+            }
+
+        ]
+    },
+
+    options: {
+    responsive: true,
+    maintainAspectRatio: false,
+
+    plugins: {
+        legend: {
+            position: 'top',
+
+            labels:{
+                color:'#111'
+            }
+        }
+    },
+
+    scales: {
+        y: {
+            beginAtZero: true,
+            max: 100,
+
+            ticks: {
+                color: '#111'
+            },
+
+            grid: {
+                color: '#ddd'
+            }
+        },
+
+        x: {
+            ticks: {
+                color: '#111'
+            },
+
+            grid: {
+                color: '#eee'
+            }
+        }
+    }
+}
+});
+</script>
+</body>
+</html>

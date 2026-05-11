@@ -1,3 +1,4 @@
+from datetime import datetime
 from logging import config
 
 from flask import (
@@ -40,9 +41,12 @@ Api_key = os.getenv("APiKey")
 client = OpenAI(api_key=Api_key)
 app = Flask(__name__)
 app.secret_key = "secret123"
+
+
 @app.context_processor
 def inject_user():
     return dict(username=session.get("user"))
+
 
 # ---------------- USERS ----------------
 users = {}
@@ -65,9 +69,11 @@ def format_message(code):
     messages = {
         "LOW_HR": get_text("⚠️ انخفاض في ضربات القلب", "⚠️ Low Heart Rate"),
         "HIGH_ACC": get_text("⚠️ حركة زائدة متكررة", "⚠️ Repeated Movement"),
-        "LOUD_MIC": get_text("⚠️ صوت مرتفع (بكاء)", "⚠️ Loud Crying")
+        "LOUD_MIC": get_text("⚠️ صوت مرتفع (بكاء)", "⚠️ Loud Crying"),
     }
     return messages.get(code, code)
+
+
 def send_alert(msg, sensor_data=None):
     TOKEN = os.getenv("token")
     chat_id = os.getenv("chat_id")
@@ -115,6 +121,7 @@ HIGH_MIC_LIMIT = 5
 # 🔥 cooldown لكل alert
 last_alert_time = {}
 ALERT_COOLDOWN = 10
+
 
 def analyze_sensor(hr, acc, mic):
     global low_hr_counter, high_acc_counter, high_mic_counter
@@ -249,22 +256,25 @@ def sensor():
     current_time = time.time()
 
     for a in alerts:
-     if a not in last_alert_time:
-         last_alert_time[a] = 0
+        if a not in last_alert_time:
+            last_alert_time[a] = 0
 
-     if current_time - last_alert_time[a] > ALERT_COOLDOWN:
+        if current_time - last_alert_time[a] > ALERT_COOLDOWN:
             send_alert(format_message(a), sensor_data)
             last_alert_time[a] = current_time
-        
+
     return {"status": "ok"}
 
 
 @app.route("/get_data")
 def get_data():
     return jsonify(sensor_data)
-@app.route("/history")
+
+
+@app.route("/sensor_history")
 def history():
     return jsonify(sensor_history)
+
 
 # ---------------- QUESTIONS ----------------
 questions_en = [
@@ -409,6 +419,7 @@ def final_diagnosis(categories, eye_percent, emotion):
 
     return "Normal"
 
+
 # ---------------- DASHBOARD ----------------
 @app.route("/dashboard")
 def dashboard():
@@ -417,31 +428,53 @@ def dashboard():
     lang = session.get("lang", "en")
     return render_template(
         "dashboard.html",
-
         username=session["user"],
         lang=lang,
-
         # navbar
         welcome_text=get_text("مرحبًا", "Welcome"),
         logout_text=get_text("تسجيل خروج", "Logout"),
-
         # title
         title=get_text("لوحة التحكم", "Dashboard"),
         live_text=get_text("المتابعة المباشرة", "Live Monitoring Dashboard"),
-
         # cards
         hr_text=get_text("معدل ضربات القلب", "Heart Rate"),
         acc_text=get_text("التسارع", "Acceleration"),
         mic_text=get_text("الميكروفون", "Microphone"),
         freq_text=get_text("التردد", "Frequency"),
-
         # status
         state_text=get_text("الحالة الحالية", "Current State"),
         prediction_text=get_text("التوقع", "Prediction"),
-
         # alerts
-        no_alerts=get_text("لا يوجد تنبيهات", "No alerts")
-)
+        no_alerts=get_text("لا يوجد تنبيهات", "No alerts"),
+    )
+
+
+@app.route("/history")
+def assessment_history():
+
+    user = get_current_user()
+
+    if not user:
+        return redirect(url_for("login"))
+
+    assessments = users[user].get("assessments", [])
+
+    return render_template(
+        "history.html",
+        assessments=assessments,
+        username=user,
+        welcome_text=get_text("مرحبًا", "Welcome"),
+        logout_text=get_text("تسجيل خروج", "Logout"),
+    )
+
+
+@app.route("/continue")
+def continue_options():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    return render_template("continue.html")
 
 
 # ---------------- MEDIAPIPE ----------------
@@ -456,12 +489,7 @@ def run_eye_tracker():
     contact = 0
     total = 0
 
-    emotion_counts = {
-        "anger": 0,
-        "fear": 0,
-        "joy": 0,
-        "neutral": 0
-    }
+    emotion_counts = {"anger": 0, "fear": 0, "joy": 0, "neutral": 0}
 
     start_time = time.time()
     duration = 30
@@ -506,8 +534,10 @@ def run_eye_tracker():
                     # حلل كل 3 frames
                     if frame_count % 3 == 0:
 
-                        result = DeepFace.analyze(face_crop, actions=['emotion'], enforce_detection=False)
-                        emotions = result[0]['emotion']
+                        result = DeepFace.analyze(
+                            face_crop, actions=["emotion"], enforce_detection=False
+                        )
+                        emotions = result[0]["emotion"]
 
                         # -------- SMART LOGIC --------
                         happy = emotions.get("happy", 0)
@@ -594,6 +624,7 @@ def run_eye_tracker():
 
     return round(percent, 2), final_emotion
 
+
 # ---------------- AUTH ----------------
 # 🌍 language
 @app.route("/set_lang/<lang>")
@@ -601,14 +632,17 @@ def set_lang(lang):
     session["lang"] = lang
     return redirect(request.referrer)
 
+
 def get_text(ar, en):
     if session.get("lang") == "ar":
         return ar
     return en
 
+
 @app.context_processor
 def inject_lang():
     return dict(lang=session.get("lang", "en"))
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -624,21 +658,23 @@ def register():
             "answers": [],
             "last_result": None,
             "chat_history": [],
+            "assessments": [],
         }
 
         save_users()
         return redirect(url_for("login"))
 
     return render_template(
-    "register.html",
-    title=get_text("إنشاء حساب", "Create Account"),
-    subtitle=get_text("سجّل لإنشاء حساب", "Register to continue"),
-    btn_text=get_text("تسجيل", "Sign Up"),
-    username_text=get_text("اسم المستخدم", "Username"),
-    password_text=get_text("كلمة المرور", "Password"),
-    have_account_text=get_text("عندك حساب؟", "Already have account?"),
-    login_text=get_text("تسجيل الدخول", "Login"),
-)
+        "register.html",
+        title=get_text("إنشاء حساب", "Create Account"),
+        subtitle=get_text("سجّل لإنشاء حساب", "Register to continue"),
+        btn_text=get_text("تسجيل", "Sign Up"),
+        username_text=get_text("اسم المستخدم", "Username"),
+        password_text=get_text("كلمة المرور", "Password"),
+        have_account_text=get_text("عندك حساب؟", "Already have account?"),
+        login_text=get_text("تسجيل الدخول", "Login"),
+    )
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -651,6 +687,8 @@ def login():
 
         if u in users and users[u]["password"] == p:
             session["user"] = u
+            if users[u].get("assessments"):
+                return redirect("/continue")
             return redirect(url_for("index"))
 
         # ❌ لو غلط
@@ -658,38 +696,36 @@ def login():
 
     return render_template(
         "login.html",
-
         # 🧠 left side
         title_main_line1=get_text("نظام ذكي", "Smart Autism"),
         title_main_line2=get_text("لمتابعة التوحد", "Monitoring System"),
-
         description=get_text(
             "نظام ذكي لمتابعة سلوك الطفل وتحليل حالته باستخدام الذكاء الاصطناعي",
-            "AI-powered system to monitor behavior, detect stress, and help caregivers understand the child in real time."
+            "AI-powered system to monitor behavior, detect stress, and help caregivers understand the child in real time.",
         ),
-
         # features
         f1_title=get_text("مراقبة لحظية", "Real-time monitoring"),
-        f1_desc=get_text("متابعة مباشرة وتنبيهات فورية", "Live tracking and instant alerts"),
-
+        f1_desc=get_text(
+            "متابعة مباشرة وتنبيهات فورية", "Live tracking and instant alerts"
+        ),
         f2_title=get_text("تحليلات ذكية", "Smart analytics"),
-        f2_desc=get_text("تقارير وتحليل باستخدام الذكاء الاصطناعي", "AI insights and advanced reports"),
-
+        f2_desc=get_text(
+            "تقارير وتحليل باستخدام الذكاء الاصطناعي",
+            "AI insights and advanced reports",
+        ),
         f3_title=get_text("تشخيص ذكي", "AI diagnosis"),
-        f3_desc=get_text("تقييم وتحليل دقيق للحالة", "Intelligent assessment and predictions"),
-
+        f3_desc=get_text(
+            "تقييم وتحليل دقيق للحالة", "Intelligent assessment and predictions"
+        ),
         # login card
         login_title=get_text("نظام التوحد", "Smart Autism System"),
         subtitle=get_text("سجل الدخول للمتابعة", "Login to continue"),
-
         username_text=get_text("اسم المستخدم", "Username"),
         password_text=get_text("كلمة المرور", "Password"),
-
         btn_text=get_text("تسجيل الدخول", "Login"),
         register_text=get_text("إنشاء حساب", "Create account"),
-
         error=error,  # 🔥 مهم
-        lang=session.get("lang", "en")
+        lang=session.get("lang", "en"),
     )
 
 
@@ -720,28 +756,22 @@ def index():
 
     return render_template(
         "index.html",
-
         # القديم (سيبيه)
         result=result or no_result,
         title=title,
-
         # 👤 user
         username=user,
-
         # 🔝 navbar
         welcome_text=get_text("أهلاً", "Welcome"),
         logout_text=get_text("تسجيل الخروج", "Logout"),
-
         # 🧠 hero
         title_main_line1=get_text("نظام ذكي", "Smart Autism"),
         title_main_line2=get_text("لمتابعة التوحد", "Monitoring System"),
-
         description=get_text(
             "نظام ذكي لتقييم ومتابعة التوحد باستخدام الذكاء الاصطناعي",
-            "An intelligent autism assessment system combining AI diagnosis, eye tracking, and real-time monitoring"
+            "An intelligent autism assessment system combining AI diagnosis, eye tracking, and real-time monitoring",
         ),
-
-        start_text=get_text("ابدأ التقييم", "Start Assessment")
+        start_text=get_text("ابدأ التقييم", "Start Assessment"),
     )
 
 
@@ -752,8 +782,8 @@ def parent_info():
         return redirect(url_for("login"))
 
     # لو المستخدم عمل assessment قبل كده
-    if users[user]["last_result"] is not None:
-        return redirect(url_for("result"))
+    # if users[user]["last_result"] is not None:
+    # return redirect(url_for("result"))
 
     if request.method == "POST":
         users[user]["answers"] = [None] * len(questions_en)
@@ -761,39 +791,36 @@ def parent_info():
         return redirect(url_for("question", q=0))
 
     return render_template(
-    "parent_info.html",
-
-    # 🔝 navbar
-    title=get_text("نظام التوحد", "Autism System"),
-    welcome_text=get_text("أهلاً", "Welcome"),
-    logout_text=get_text("تسجيل الخروج", "Logout"),
-    username=user,
-
-    # 🧾 page
-    title_info=get_text("بيانات الطفل", "Child Information"),
-    age_text=get_text("العمر", "Age"),
-    gender_text=get_text("اختر النوع", "Select Gender"),
-    male_text=get_text("ذكر", "Male"),
-    female_text=get_text("أنثى", "Female"),
-    start_text=get_text("ابدأ الأسئلة", "Start Questions")
-)
-
+        "parent_info.html",
+        # 🔝 navbar
+        title=get_text("نظام التوحد", "Autism System"),
+        welcome_text=get_text("أهلاً", "Welcome"),
+        logout_text=get_text("تسجيل الخروج", "Logout"),
+        username=user,
+        # 🧾 page
+        title_info=get_text("بيانات الطفل", "Child Information"),
+        age_text=get_text("العمر", "Age"),
+        gender_text=get_text("اختر النوع", "Select Gender"),
+        male_text=get_text("ذكر", "Male"),
+        female_text=get_text("أنثى", "Female"),
+        start_text=get_text("ابدأ الأسئلة", "Start Questions"),
+    )
 
 
 @app.route("/questionnaire", methods=["GET", "POST"])
 def question():
-    
+
     user = get_current_user()
     if not user:
         return redirect(url_for("login"))
-    if users[user]["last_result"] is not None:
-        return redirect(url_for("specialist"))
+    # if users[user]["last_result"] is not None:
+    # return redirect(url_for("specialist"))
 
     q = int(request.args.get("q", 0))
-    
-     # 🔥 texts
+
+    # 🔥 texts
     questions_list = questions_ar if session.get("lang") == "ar" else questions_en
-    
+
     next_text = get_text("التالي", "Next")
     prev_text = get_text("السابق", "Previous")
     error_text = get_text("اختار إجابة الأول", "Please select an answer first")
@@ -817,24 +844,23 @@ def question():
 
             if not ans:
                 return render_template(
-                "question.html",
-                question=questions_list[q],
-                q_index=q,
-                total=len(questions_en),
-                selected=users[user]["answers"][q],
-                error=error_text,
-                next_text=next_text,
-                prev_text=prev_text,
-                username=user,
-
-                question_title=question_title,
-                of_text=of_text,
-                opt1=opt1,
-                opt2=opt2,
-                opt3=opt3,
-                opt4=opt4,
-                finish_text=finish_text
-            )
+                    "question.html",
+                    question=questions_list[q],
+                    q_index=q,
+                    total=len(questions_en),
+                    selected=users[user]["answers"][q],
+                    error=error_text,
+                    next_text=next_text,
+                    prev_text=prev_text,
+                    username=user,
+                    question_title=question_title,
+                    of_text=of_text,
+                    opt1=opt1,
+                    opt2=opt2,
+                    opt3=opt3,
+                    opt4=opt4,
+                    finish_text=finish_text,
+                )
 
             users[user]["answers"][q] = int(ans)
             save_users()
@@ -845,34 +871,32 @@ def question():
             return redirect(url_for("question", q=q + 1))
 
     return render_template(
-    "question.html",
-    question=questions_list[q],
-    q_index=q,
-    total=len(questions_en),
-    selected=users[user]["answers"][q],
-    error=None,
-    username=user,
-    next_text=next_text,
-    prev_text=prev_text,
-
-    question_title=question_title,
-    of_text=of_text,
-    opt1=opt1,
-    opt2=opt2,
-    opt3=opt3,
-    opt4=opt4,
-    finish_text=finish_text
-)
+        "question.html",
+        question=questions_list[q],
+        q_index=q,
+        total=len(questions_en),
+        selected=users[user]["answers"][q],
+        error=None,
+        username=user,
+        next_text=next_text,
+        prev_text=prev_text,
+        question_title=question_title,
+        of_text=of_text,
+        opt1=opt1,
+        opt2=opt2,
+        opt3=opt3,
+        opt4=opt4,
+        finish_text=finish_text,
+    )
 
 
 @app.route("/eye_test", methods=["GET", "POST"])
 def eye_test():
+
     user = get_current_user()
+
     if not user:
         return redirect(url_for("login"))
-
-    if users[user]["last_result"] is not None:
-        return redirect(url_for("specialist"))
 
     if request.method == "POST":
 
@@ -885,6 +909,7 @@ def eye_test():
         diagnosis = final_diagnosis(categories, eye, emotion)
 
         cars = total_score(categories)
+
         percent = (cars / 60) * 100
 
         users[user]["last_result"] = {
@@ -895,30 +920,98 @@ def eye_test():
             "emotion": emotion,
         }
 
+        # 🔥 assessment object
+        new_assessment = {
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "diagnosis": diagnosis,
+            "percentage": percent,
+            "eye_percent": eye,
+            "categories": categories,
+            "emotion": emotion,
+        }
+
+        # 🔥 AI comparison
+        analysis_text = ""
+
+        old_assessments = users[user].get("assessments", [])
+
+        if len(old_assessments) > 0:
+
+            prev = old_assessments[-1]
+
+            prompt = f"""
+Previous assessment:
+Autism indicators: {prev['percentage']}%
+Eye contact: {prev['eye_percent']}%
+Emotion: {prev['emotion']}
+
+Current assessment:
+Autism indicators: {percent}%
+Eye contact: {eye}%
+Emotion: {emotion}
+
+Analyze the child's progress briefly like an autism specialist.
+
+Mention:
+- improvement or decline
+- eye contact changes
+- emotional changes
+- recommendation
+
+Keep the response short and professional.
+"""
+
+            try:
+
+                ai_response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are an autism specialist.",
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt,
+                        },
+                    ],
+                )
+
+                analysis_text = ai_response.choices[0].message.content
+
+            except Exception as e:
+
+                print("AI ERROR:", e)
+
+                analysis_text = "AI analysis unavailable."
+
+        # 🔥 save AI analysis
+        new_assessment["ai_analysis"] = analysis_text
+
+        # 🔥 save assessment
+        users[user].setdefault("assessments", [])
+
+        users[user]["assessments"].append(new_assessment)
+
         save_users()
 
         return redirect(url_for("result"))
 
-    # ✅ ده أهم سطر (كان ناقص)
-   
     lang = session.get("lang", "en")
+
     return render_template(
         "eye_test.html",
         username=user,
         lang=lang,
-
         title=get_text("اختبار التواصل البصري 👁️", "Eye Contact Test 👁️"),
         instruction=get_text(
             "انظر مباشرة إلى الكاميرا لبضع ثواني",
-            "Please look directly at the camera for a few seconds."
+            "Please look directly at the camera for a few seconds.",
         ),
         btn_text=get_text("ابدأ الاختبار", "Start Test"),
-
         welcome_text=get_text("مرحبًا", "Welcome"),
-        logout_text=get_text("تسجيل خروج", "Logout")
+        logout_text=get_text("تسجيل خروج", "Logout"),
     )
-
-    
 
 
 # 🔥 CHAT
@@ -931,7 +1024,13 @@ def ask_ai():
     question = request.json.get("question")
     data = users[user].get("last_result")
     if not data:
-        return jsonify({"answer": get_text("اعمل التقييم الأول", "Please complete assessment first")})
+        return jsonify(
+            {
+                "answer": get_text(
+                    "اعمل التقييم الأول", "Please complete assessment first"
+                )
+            }
+        )
 
     context = f"""
 Diagnosis: {data['diagnosis']}
@@ -944,9 +1043,9 @@ Sound: {sensor_data['mic']}
 State: {sensor_data['state']}
 """
     system_msg = get_text(
-    "أنت متخصص في التوحد تساعد أولياء الأمور",
-    "You are an autism specialist helping parents"
-)
+        "أنت متخصص في التوحد تساعد أولياء الأمور",
+        "You are an autism specialist helping parents",
+    )
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -999,21 +1098,23 @@ def voice_ai():
 
         data = users[user].get("last_result")
         if not data:
-            return jsonify({"answer": get_text("اعمل التقييم الأول", "Please complete assessment first")})
+            return jsonify(
+                {
+                    "answer": get_text(
+                        "اعمل التقييم الأول", "Please complete assessment first"
+                    )
+                }
+            )
 
         context = f"""
 Diagnosis: {data['diagnosis']}
 Severity: {data['percentage']}%
 """
-        system_msg1 = get_text(
-                    "أنت متخصص في التوحد",
-                    "You are autism specialist"
-                )
+        system_msg1 = get_text("أنت متخصص في التوحد", "You are autism specialist")
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=
-            [
-                {"role": "system", "content":system_msg1},
+            messages=[
+                {"role": "system", "content": system_msg1},
                 {"role": "user", "content": context + "\n\n" + text},
             ],
         )
@@ -1047,24 +1148,24 @@ def specialist():
     if not data:
         return redirect(url_for("index"))
     lang = session.get("lang", "en")
-    
+
     return render_template(
-    "specialist.html",
-     username=user,
+        "specialist.html",
+        username=user,
         lang=lang,
-    **data,
-     # 🔥 ترجمة
-        autism_text = get_text("توحد", "Autism"),
+        chat_history=chat,
+        **data,
+        # 🔥 ترجمة
+        autism_text=get_text("توحد", "Autism"),
         title=get_text("المتخصص", "Specialist"),
         send_text=get_text("إرسال", "Send"),
         welcome_text=get_text("مرحبًا", "Welcome"),
         logout_text=get_text("تسجيل خروج", "Logout"),
-
         severity_text=get_text("شدة الحالة", "Severity"),
         eye_text=get_text("التواصل البصري", "Eye Contact"),
         placeholder_text=get_text("اكتب رسالتك...", "Type your message..."),
-        typing_text=get_text("يكتب...", "Typing...")
-)
+        typing_text=get_text("يكتب...", "Typing..."),
+    )
 
 
 # 🔥 PDF
@@ -1078,18 +1179,17 @@ def download_pdf():
     title = get_text("التقرير", "Report")
     diagnosis_title = get_text("التشخيص", "Diagnosis")
     eye_title = get_text("التواصل البصري", "Eye Contact")
-    
-    rendered = render_template(
-    "result_pdf.html",
-    diagnosis=data["diagnosis"],
-    percentage=round(data["percentage"], 1),
-    eye_percent=data["eye_percent"],
-    categories=data["categories"],
 
-    # 🔥 texts
-    title=title,
-    diagnosis_title=diagnosis_title,
-    eye_title=eye_title
+    rendered = render_template(
+        "result_pdf.html",
+        diagnosis=data["diagnosis"],
+        percentage=round(data["percentage"], 1),
+        eye_percent=data["eye_percent"],
+        categories=data["categories"],
+        # 🔥 texts
+        title=title,
+        diagnosis_title=diagnosis_title,
+        eye_title=eye_title,
     )
     config = pdfkit.configuration(
         wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
@@ -1102,6 +1202,8 @@ def download_pdf():
     response.headers["Content-Disposition"] = "attachment; filename=report.pdf"
 
     return response
+
+
 @app.route("/result")
 def result():
     user = get_current_user()
@@ -1109,14 +1211,14 @@ def result():
         return redirect(url_for("login"))
 
     data = users[user]["last_result"]
-    lang = session.get("lang", "en")   # 🔥 مهم
+    lang = session.get("lang", "en")  # 🔥 مهم
     diagnosis_map = {
-    "Autism": get_text("توحد", "Autism"),
-    "Normal": get_text("طبيعي", "Normal"),
-    "Mild": get_text("بسيط", "Mild"),
-    "Moderate": get_text("متوسط", "Moderate"),
-    "Severe": get_text("شديد", "Severe"),
-}
+        "Autism": get_text("توحد", "Autism"),
+        "Normal": get_text("طبيعي", "Normal"),
+        "Mild": get_text("بسيط", "Mild"),
+        "Moderate": get_text("متوسط", "Moderate"),
+        "Severe": get_text("شديد", "Severe"),
+    }
     category_names = {
         "Relating": get_text("التفاعل", "Relating"),
         "Imitation": get_text("التقليد", "Imitation"),
@@ -1138,18 +1240,15 @@ def result():
         "result.html",
         username=user,
         lang=lang,
-
         # data
         diagnosis=diagnosis_map.get(data["diagnosis"], data["diagnosis"]),
         percentage=round(data["percentage"], 1),
         eye_percent=data["eye_percent"],
         categories=data["categories"],
         emotion=data["emotion"],
-
         # navbar
         welcome_text=get_text("مرحبًا", "Welcome"),
         logout_text=get_text("تسجيل خروج", "Logout"),
-
         # titles
         diagnosis_title=get_text("التشخيص", "Diagnosis"),
         autism_text=get_text("مؤشرات التوحد", "Autism Indicators"),
@@ -1157,19 +1256,17 @@ def result():
         emotion_text=get_text("الحالة العاطفية", "Emotion"),
         cars_text=get_text("درجة CARS", "CARS Score"),
         details_text=get_text("النتائج التفصيلية", "Detailed Scores"),
-
         # buttons
         home_text=get_text("الرئيسية", "Home"),
         specialist_text=get_text("الأخصائي", "Specialist"),
         pdf_text=get_text("تحميل PDF", "PDF"),
         monitor_text=get_text("المتابعة", "Monitor"),
-
         # message
         monitor_msg=get_text(
             "نوصي بالمتابعة المستمرة باستخدام السوار الذكي لفهم سلوك الطفل بشكل أفضل",
-            "We recommend continuous monitoring using the smart band to better understand your child's behavior."
+            "We recommend continuous monitoring using the smart band to better understand your child's behavior.",
         ),
-        #High good calm
+        # High good calm
         status_high=get_text("مرتفع", "High"),
         status_good=get_text("جيد", "Good"),
         status_moderate=get_text("متوسط", "Moderate"),
@@ -1180,7 +1277,6 @@ def result():
         status_positive=get_text("إيجابي", "Positive"),
         status_distress=get_text("توتر", "Distress"),
         status_anxiety=get_text("قلق", "Anxiety"),
-           
         # 🔥 الجديد
         scores_meaning=get_text("ماذا تعني النتائج؟", "What do the scores mean?"),
         normal_text=get_text("طبيعي", "Normal"),
@@ -1189,15 +1285,15 @@ def result():
         severe_text=get_text("شديد", "Severe"),
         cars_interpret=get_text("تفسير CARS", "CARS Interpretation"),
         eye_interpret=get_text("تفسير التواصل البصري", "Eye Contact Interpretation"),
-        autism_interpret=get_text("تفسير مؤشرات التوحد", "Autism Indicators Interpretation"),
+        autism_interpret=get_text(
+            "تفسير مؤشرات التوحد", "Autism Indicators Interpretation"
+        ),
         area_text=get_text("المجال", "Area"),
         score_text=get_text("الدرجة", "Score"),
         percent_text=get_text("النسبة", "Percentage"),
-        
         category_names=category_names,
-        )
-     
-    
+    )
+
 
 # ---------------- START ----------------
 load_users()
