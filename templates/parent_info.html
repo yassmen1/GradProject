@@ -195,6 +195,7 @@ body[dir="rtl"] .navbar {
 .lang-btn:hover {
     background:#ddd;
 }
+
 </style>
 </head>
 
@@ -226,8 +227,17 @@ body[dir="rtl"] .navbar {
 
         <div class="input-box">
             <span>📅</span>
-            <input type="number" name="age" placeholder="{{ age_text }}" required>
+
+            <input
+                type="number"
+                name="age"
+                placeholder="{{ age_text }}"
+                min="2"
+                max="12"
+                required
+            >
         </div>
+        
         
         <div class="input-box">
             <span>👥</span>

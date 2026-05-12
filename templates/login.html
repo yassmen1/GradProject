@@ -2,7 +2,8 @@
 <html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
 <head>
 <title>Login</title>
-
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 
 body {
@@ -193,6 +194,23 @@ body[dir="rtl"] .top-bar {
     left:30px;
     right:auto;
 }
+.password-box{
+    position:relative;
+}
+
+.password-box input{
+    width:100%;
+}
+
+.toggle-password{
+    position:absolute;
+    right:15px;
+    top:50%;
+    transform:translateY(-50%);
+    cursor:pointer;
+    color:#666;
+    font-size:18px;
+}
 </style>
 </head>
 
@@ -251,15 +269,62 @@ body[dir="rtl"] .top-bar {
 
         <form method="post">
             <input name="username" placeholder="👤 {{ username_text }}" required>
-            <input name="password" type="password" placeholder="🔒 {{ password_text }}" required>
+            <div class="password-box">
+
+            <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="🔒 {{ password_text }}"
+                required
+            >
+
+            <span class="toggle-password" onclick="togglePassword()">
+
+                <i id="eyeIcon" class="fa-solid fa-eye"></i>
+
+            </span>
+
+        </div>
             <button type="submit">{{ btn_text or 'Login' }}</button>
         </form>
-
+        {% if error %}
+        <p style="color:red; margin-top:10px;">
+            {{ error }}
+        </p>
+        {% endif %}
         <a href="/register">{{ register_text }}</a>
 
     </div>
 
 </div>
+<script>
 
+function togglePassword(){
+
+    const password = document.getElementById("password");
+
+    const eyeIcon = document.getElementById("eyeIcon");
+
+    if(password.type === "password"){
+
+        password.type = "text";
+
+        eyeIcon.classList.remove("fa-eye");
+
+        eyeIcon.classList.add("fa-eye-slash");
+    }
+
+    else{
+
+        password.type = "password";
+
+        eyeIcon.classList.remove("fa-eye-slash");
+
+        eyeIcon.classList.add("fa-eye");
+    }
+}
+
+</script>
 </body>
 </html>

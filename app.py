@@ -20,6 +20,7 @@ import requests
 import time
 import uuid
 import pdfkit
+import re
 from flask import make_response
 from dotenv import load_dotenv
 from deepface import DeepFace
@@ -396,8 +397,9 @@ def final_diagnosis(categories, eye_percent, emotion):
     if categories["Activity"] > 3:
         adhd_score += 2
 
-    if emotion == "anger":
+    if emotion in ["anger", "joy", "neutral","fear"]:
         adhd_score += 1
+        
 
     # DELAY
     avg_score = sum(categories.values()) / len(categories)
@@ -411,10 +413,10 @@ def final_diagnosis(categories, eye_percent, emotion):
     if autism_score >= 6:
         return "Autism"
 
-    if adhd_score >= 4:
+    if adhd_score >= 3:
         return "ADHD"
 
-    if delay_score >= 3:
+    if delay_score >= 2:
         return "Delay"
 
     return "Normal"
@@ -646,31 +648,107 @@ def inject_lang():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+
+    error = None
+
     if request.method == "POST":
-        u = request.form.get("username")
-        p = request.form.get("password")
 
-        if u in users:
-            return get_text("المستخدم موجود بالفعل", "User already exists")
+        u = request.form.get("username", "").strip()
+        p = request.form.get("password", "").strip()
 
-        users[u] = {
-            "password": p,
-            "answers": [],
-            "last_result": None,
-            "chat_history": [],
-            "assessments": [],
-        }
+        # USERNAME VALIDATION
+        if len(u) < 4:
 
-        save_users()
-        return redirect(url_for("login"))
+            error = get_text(
+                "اسم المستخدم لازم يكون 4 حروف على الأقل",
+                "Username must be at least 4 characters",
+            )
+
+        elif " " in u:
+
+            error = get_text(
+                "اسم المستخدم لا يجب أن يحتوي على مسافات",
+                "Username cannot contain spaces",
+            )
+
+        elif not re.match(r"^[A-Za-z0-9_]+$", u):
+
+            error = get_text(
+                "اسم المستخدم لازم يحتوي على حروف وأرقام و _ فقط",
+                "Username can contain only letters, numbers and _",
+            )
+
+        # PASSWORD VALIDATION
+        elif len(p) < 8:
+
+            error = get_text(
+                "الباسورد لازم يكون 8 حروف على الأقل",
+                "Password must be at least 8 characters",
+            )
+
+        elif not re.search(r"[A-Z]", p):
+
+            error = get_text(
+                "الباسورد لازم يحتوي على حرف كبير",
+                "Password must contain at least one uppercase letter",
+            )
+
+        elif not re.search(r"[a-z]", p):
+
+            error = get_text(
+                "الباسورد لازم يحتوي على حرف صغير",
+                "Password must contain at least one lowercase letter",
+            )
+
+        elif not re.search(r"[0-9]", p):
+
+            error = get_text(
+                "الباسورد لازم يحتوي على رقم",
+                "Password must contain at least one number",
+            )
+
+        elif not re.search(r"[!@#$%^&*(),.?\":{}|<>]", p):
+
+            error = get_text(
+                "الباسورد لازم يحتوي على رمز خاص",
+                "Password must contain at least one special character",
+            )
+
+        # USER EXISTS
+        elif u in users:
+
+            error = get_text(
+                "المستخدم موجود بالفعل",
+                "User already exists",
+            )
+
+        # SUCCESS
+        if not error:
+
+            users[u] = {
+                "password": p,
+                "answers": [],
+                "last_result": None,
+                "chat_history": [],
+                "assessments": [],
+            }
+
+            save_users()
+
+            return redirect(url_for("login"))
 
     return render_template(
         "register.html",
+
+        error=error,
+
         title=get_text("إنشاء حساب", "Create Account"),
         subtitle=get_text("سجّل لإنشاء حساب", "Register to continue"),
         btn_text=get_text("تسجيل", "Sign Up"),
+
         username_text=get_text("اسم المستخدم", "Username"),
         password_text=get_text("كلمة المرور", "Password"),
+
         have_account_text=get_text("عندك حساب؟", "Already have account?"),
         login_text=get_text("تسجيل الدخول", "Login"),
     )
@@ -774,7 +852,22 @@ def index():
         start_text=get_text("ابدأ التقييم", "Start Assessment"),
     )
 
+@app.route("/start_assessment")
+def start_assessment():
 
+    # لو مش عامل login
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    user = session["user"]
+
+    # لو عنده assessment قديم
+    if user in users and users[user].get("assessments"):
+
+        return redirect(url_for("continue_options"))
+
+    # لو أول مرة
+    return redirect(url_for("parent_info"))
 @app.route("/parent_info", methods=["GET", "POST"])
 def parent_info():
     user = get_current_user()
@@ -786,8 +879,36 @@ def parent_info():
     # return redirect(url_for("result"))
 
     if request.method == "POST":
+
+        age = int(request.form.get("age"))
+
+        if age < 2 or age > 12:
+
+            return render_template(
+                "parent_info.html",
+
+                error=get_text(
+                    "العمر يجب أن يكون بين 2 و 12",
+                    "Age must be between 2 and 12"
+                ),
+
+                title=get_text("نظام التوحد", "Autism System"),
+                welcome_text=get_text("أهلاً", "Welcome"),
+                logout_text=get_text("تسجيل الخروج", "Logout"),
+                username=user,
+
+                title_info=get_text("بيانات الطفل", "Child Information"),
+                age_text=get_text("العمر", "Age"),
+                gender_text=get_text("اختر النوع", "Select Gender"),
+                male_text=get_text("ذكر", "Male"),
+                female_text=get_text("أنثى", "Female"),
+                start_text=get_text("ابدأ الأسئلة", "Start Questions")
+            )
+        users[user]["age"] = age
         users[user]["answers"] = [None] * len(questions_en)
+
         save_users()
+
         return redirect(url_for("question", q=0))
 
     return render_template(

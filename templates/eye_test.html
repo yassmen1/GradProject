@@ -136,7 +136,13 @@ body[dir="rtl"] .top-bar {
 .lang-btn:hover {
     background:#ddd;
 }
-    </style>
+#timer{
+    margin-top:15px;
+    font-size:22px;
+    font-weight:bold;
+    color:#1976d2;
+}
+</style>
 </head>
 
 <body>
@@ -157,13 +163,47 @@ body[dir="rtl"] .top-bar {
 
 </div>
 <div class="card">
+
     <h2>{{ title }}</h2>
+    <div id="timer">
+        ⏳ 30 sec
+    </div>
     <p>{{ instruction }}</p>
 
     <form method="post">
-        <button>{{ btn_text }}</button>
+        <button onclick="startTest()">{{ btn_text }}</button>
     </form>
 </div>
+<script>
 
+function startTest(){
+
+    let timeLeft = 30;
+
+    const timer = document.getElementById("timer");
+
+    timer.innerHTML = `⏳ ${timeLeft} sec`;
+
+    const countdown = setInterval(() => {
+
+        timeLeft--;
+
+        timer.innerHTML = `⏳ ${timeLeft} sec`;
+
+        if(timeLeft <= 0){
+
+            clearInterval(countdown);
+
+            timer.innerHTML = "✅ Finished";
+        }
+
+    },1000);
+
+    // 🔥 هنا حطي الكود الأصلي بتاع تشغيل الاختبار
+    window.location.href="/run_eye_test";
+
+}
+
+</script>
 </body>
 </html>

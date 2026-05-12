@@ -248,7 +248,27 @@ canvas {
     height: 300px !important;
 }
 
+.nav-btn{
+    text-decoration:none;
+    color:white;
+    padding:6px 14px;
+    border-radius:8px;
+    font-size:13px;
+    transition:0.3s;
+}
 
+.home-btn{
+    background:#6366f1;
+}
+
+.back-btn{
+    background:#64748b;
+}
+
+.nav-btn:hover{
+    transform:scale(1.05);
+    opacity:0.9;
+}
 </style>
 </head>
 <body>
@@ -268,7 +288,8 @@ canvas {
         <!-- 🌍 LANGUAGE -->
         <a href="/set_lang/en" class="lang-btn">EN</a>
         <a href="/set_lang/ar" class="lang-btn">AR</a>
-
+        <a href="/" class="nav-btn home-btn">🏠 Home</a>
+        <a href="/result" class="nav-btn back-btn">⬅ Back</a>
         <a href="/logout" class="logout">{{ logout_text }}</a>
 
     </div>

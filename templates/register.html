@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Register</title>
-
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 
 /* RESET */
@@ -187,6 +188,67 @@ body[dir="rtl"] input {
 body[dir="rtl"] .card {
     text-align: right;
 }
+.error-message{
+    color:#e11d48;
+    font-size:14px;
+    margin-bottom:10px;
+    font-weight:500;
+}
+.rules{
+    display:none;
+
+    text-align:left;
+    margin-top:8px;
+    margin-bottom:15px;
+    font-size:13px;
+    color:#666;
+}
+
+.rules p{
+    margin:4px 0;
+}
+
+.valid{
+    color:#16a34a;
+}
+
+.invalid{
+    color:#dc2626;
+}
+
+.password-box{
+    position:relative;
+}
+
+.password-box input{
+    width:100%;
+}
+
+.toggle-password{
+    position:absolute;
+    right:15px;
+    top:50%;
+    transform:translateY(-50%);
+    cursor:pointer;
+    color:#666;
+}
+.password-box{
+    position:relative;
+}
+
+.password-box input{
+    width:100%;
+}
+
+.toggle-password{
+    position:absolute;
+    right:15px;
+    top:50%;
+    transform:translateY(-50%);
+    cursor:pointer;
+    color:#666;
+    font-size:18px;
+}
 </style>
 </head>
 
@@ -242,13 +304,57 @@ body[dir="rtl"] .card {
 
             <h2>{{ title }}</h2>
             <p class="subtitle">{{ subtitle }}</p>
-
+            {% if error %}
+            <p class="error-message">
+                {{ error }}
+            </p>
+            {% endif %}
             <form method="POST">
-                <input name="username" placeholder="{{ username_text }}" required>
-                <input type="password" name="password" placeholder="{{ password_text }}" required>
+                <input id="username" name="username" placeholder="{{ username_text }}" required>
 
+                    <div id="username-rules" class="rules">
+
+                        <p id="user-length">❌ At least 4 characters</p>
+
+                        <p id="user-space">❌ No spaces</p>
+
+                        <p id="user-valid">❌ Only letters, numbers and _</p>
+
+                    </div>
+                <div class="password-box">
+
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        placeholder="{{ password_text }}"
+                        required
+                    >
+
+                    <span class="toggle-password" onclick="togglePassword()">
+
+                        <i id="eyeIcon" class="fa-solid fa-eye"></i>
+
+                    </span>
+
+                </div>
+
+                <div id="password-rules" class="rules">
+
+                    <p id="pass-length">❌ At least 8 characters</p>
+
+                    <p id="pass-upper">❌ Uppercase letter</p>
+
+                    <p id="pass-lower">❌ Lowercase letter</p>
+
+                    <p id="pass-number">❌ Number</p>
+
+                    <p id="pass-special">❌ Special character</p>
+
+                </div>
                 <button>{{ btn_text }}</button>
             </form>
+            
 
             <div class="or">or</div>
 
@@ -261,6 +367,145 @@ body[dir="rtl"] .card {
     </div>
 
 </div>
+<script>
+// USERNAME RULES
+const userLength = document.getElementById("user-length");
+const userSpace = document.getElementById("user-space");
+const userValid = document.getElementById("user-valid");
 
+// PASSWORD RULES
+const passLength = document.getElementById("pass-length");
+const passUpper = document.getElementById("pass-upper");
+const passLower = document.getElementById("pass-lower");
+const passNumber = document.getElementById("pass-number");
+const passSpecial = document.getElementById("pass-special");
+const usernameInput = document.getElementById("username");
+
+usernameInput.addEventListener("input", function(){
+
+    document.getElementById("username-rules").style.display = "block";
+
+    const value = usernameInput.value;
+
+    // 4 chars
+    if(value.length >= 4){
+        userLength.innerHTML = "✅ At least 4 characters";
+        userLength.classList.add("valid");
+    }
+    else{
+        userLength.innerHTML = "❌ At least 4 characters";
+    }
+
+    // no spaces
+    if(!value.includes(" ")){
+        userSpace.innerHTML = "✅ No spaces";
+        userSpace.classList.add("valid");
+    }
+    else{
+        userSpace.innerHTML = "❌ No spaces";
+    }
+
+    // valid chars
+    if(/^[A-Za-z0-9_]+$/.test(value)){
+        userValid.innerHTML = "✅ Only letters, numbers and _";
+        userValid.classList.add("valid");
+    }
+    else{
+        userValid.innerHTML = "❌ Only letters, numbers and _";
+    }
+
+});
+
+
+// PASSWORD
+const passwordInput = document.getElementById("password");
+
+passwordInput.addEventListener("input", function(){
+    document.getElementById("password-rules").style.display = "block";
+    const value = passwordInput.value;
+
+    // length
+    if(value.length >= 8){
+        passLength.innerHTML = "✅ At least 8 characters";
+        passLength.classList.add("valid");
+    }
+
+    // upper
+    if(/[A-Z]/.test(value)){
+        passUpper.innerHTML = "✅ Uppercase letter";
+        passUpper.classList.add("valid");
+    }
+
+    // lower
+    if(/[a-z]/.test(value)){
+        passLower.innerHTML = "✅ Lowercase letter";
+        passLower.classList.add("valid");
+    }
+
+    // number
+    if(/[0-9]/.test(value)){
+        passNumber.innerHTML = "✅ Number";
+        passNumber.classList.add("valid");
+    }
+
+    // special
+    if(/[!@#$%^&*(),.?\":{}|<>]/.test(value)){
+        passSpecial.innerHTML = "✅ Special character";
+        passSpecial.classList.add("valid");
+    }
+
+});
+
+
+// SHOW PASSWORD
+function togglePassword(){
+
+    const password = document.getElementById("password");
+
+    const eyeIcon = document.getElementById("eyeIcon");
+
+    if(password.type === "password"){
+
+        password.type = "text";
+
+        eyeIcon.classList.remove("fa-eye");
+
+        eyeIcon.classList.add("fa-eye-slash");
+    }
+
+    else{
+
+        password.type = "password";
+
+        eyeIcon.classList.remove("fa-eye-slash");
+
+        eyeIcon.classList.add("fa-eye");
+    }
+}
+function togglePassword(){
+
+    const password = document.getElementById("password");
+
+    const eyeIcon = document.getElementById("eyeIcon");
+
+    if(password.type === "password"){
+
+        password.type = "text";
+
+        eyeIcon.classList.remove("fa-eye");
+
+        eyeIcon.classList.add("fa-eye-slash");
+    }
+
+    else{
+
+        password.type = "password";
+
+        eyeIcon.classList.remove("fa-eye-slash");
+
+        eyeIcon.classList.add("fa-eye");
+    }
+}
+</script>
 </body>
 </html>
