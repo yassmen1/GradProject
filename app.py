@@ -26,6 +26,7 @@ from dotenv import load_dotenv
 from deepface import DeepFace
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from werkzeug.security import generate_password_hash, check_password_hash
 from reportlab.lib.styles import getSampleStyleSheet
 import os
 from openai import OpenAI
@@ -38,10 +39,11 @@ labels = ["anger", "fear", "joy", "neutral"]
 
 
 load_dotenv()
+os.makedirs("data", exist_ok=True)
 Api_key = os.getenv("APiKey")
 client = OpenAI(api_key=Api_key)
 app = Flask(__name__)
-app.secret_key = "secret123"
+app.secret_key = os.getenv("SECRET_KEY")
 
 
 @app.context_processor
@@ -552,6 +554,10 @@ face_mesh = mp_face_mesh.FaceMesh(refine_landmarks=True)
 # ---------------- EYE TRACKING ----------------
 def run_eye_tracker():
     cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        print("Camera not available")
+
+        return 0, "neutral"
 
     contact = 0
     total = 0
@@ -635,9 +641,8 @@ def run_eye_tracker():
 
                         emotion_counts[final] += 1
 
-            except:
-                pass
-
+            except Exception as e:
+                print("Emotion Error:", e)
             # -------- EYE CONTACT --------
             try:
                 lpx, _ = xy(face.landmark[468])
@@ -659,7 +664,8 @@ def run_eye_tracker():
                     if 0.35 < left_ratio < 0.65 and 0.35 < right_ratio < 0.65:
                         gaze_center = True
 
-            except:
+            except Exception as e:
+                print("Eye Tracking Error:", e)
                 gaze_center = False
 
         if gaze_center:
@@ -791,7 +797,7 @@ def register():
         if not error:
 
             users[u] = {
-                "password": p,
+                "password": generate_password_hash(p),
                 "answers": [],
                 "last_result": None,
                 "chat_history": [],
@@ -828,11 +834,37 @@ def login():
         u = request.form.get("username")
         p = request.form.get("password")
 
-        if u in users and users[u]["password"] == p:
-            session["user"] = u
-            if users[u].get("assessments"):
-                return redirect("/continue")
-            return redirect(url_for("index"))
+        if u in users:
+
+            saved_password = users[u]["password"]
+
+            # ✅ users الجديدة (hashed)
+            if saved_password.startswith("pbkdf2:") or saved_password.startswith("scrypt:"):
+
+                if check_password_hash(saved_password, p):
+
+                    session["user"] = u
+
+                    if users[u].get("assessments"):
+                        return redirect("/continue")
+
+                    return redirect(url_for("index"))
+
+            # ✅ users القديمة (plain text)
+            else:
+
+                if saved_password == p:
+
+                    # 🔥 نحولها تلقائي لـ hash
+                    users[u]["password"] = generate_password_hash(p)
+                    save_users()
+
+                    session["user"] = u
+
+                    if users[u].get("assessments"):
+                        return redirect("/continue")
+
+                    return redirect(url_for("index"))
 
         # ❌ لو غلط
         error = get_text("بيانات غير صحيحة", "Wrong credentials")
@@ -935,17 +967,16 @@ def start_assessment():
     return redirect(url_for("parent_info"))
 @app.route("/parent_info", methods=["GET", "POST"])
 def parent_info():
+
     user = get_current_user()
+
     if not user:
         return redirect(url_for("login"))
-
-    # لو المستخدم عمل assessment قبل كده
-    # if users[user]["last_result"] is not None:
-    # return redirect(url_for("result"))
 
     if request.method == "POST":
 
         age = int(request.form.get("age"))
+        gender = request.form.get("gender")
 
         if age < 2 or age > 12:
 
@@ -969,7 +1000,32 @@ def parent_info():
                 female_text=get_text("أنثى", "Female"),
                 start_text=get_text("ابدأ الأسئلة", "Start Questions")
             )
+
+        if not gender:
+
+            return render_template(
+                "parent_info.html",
+
+                error=get_text(
+                    "اختر النوع",
+                    "Please select gender"
+                ),
+
+                title=get_text("نظام التوحد", "Autism System"),
+                welcome_text=get_text("أهلاً", "Welcome"),
+                logout_text=get_text("تسجيل الخروج", "Logout"),
+                username=user,
+
+                title_info=get_text("بيانات الطفل", "Child Information"),
+                age_text=get_text("العمر", "Age"),
+                gender_text=get_text("اختر النوع", "Select Gender"),
+                male_text=get_text("ذكر", "Male"),
+                female_text=get_text("أنثى", "Female"),
+                start_text=get_text("ابدأ الأسئلة", "Start Questions")
+            )
+
         users[user]["age"] = age
+        users[user]["gender"] = gender
         users[user]["answers"] = [None] * len(questions_en)
 
         save_users()
@@ -978,12 +1034,12 @@ def parent_info():
 
     return render_template(
         "parent_info.html",
-        # 🔝 navbar
+
         title=get_text("نظام التوحد", "Autism System"),
         welcome_text=get_text("أهلاً", "Welcome"),
         logout_text=get_text("تسجيل الخروج", "Logout"),
         username=user,
-        # 🧾 page
+
         title_info=get_text("بيانات الطفل", "Child Information"),
         age_text=get_text("العمر", "Age"),
         gender_text=get_text("اختر النوع", "Select Gender"),
@@ -991,8 +1047,6 @@ def parent_info():
         female_text=get_text("أنثى", "Female"),
         start_text=get_text("ابدأ الأسئلة", "Start Questions"),
     )
-
-
 @app.route("/questionnaire", methods=["GET", "POST"])
 def question():
 
@@ -1209,6 +1263,8 @@ def ask_ai():
         return jsonify({"answer": get_text("سجّل دخول تاني", "Please login again")})
 
     question = request.json.get("question")
+    if not question or not question.strip():
+     return jsonify({"answer": "Empty message"})
     data = users[user].get("last_result")
     if not data:
         return jsonify(
@@ -1250,7 +1306,10 @@ State: {sensor_data['state']}
     except Exception as e:
         print("ERROR:", e)
         answer = "AI not working"
-
+        
+    if "chat_history" not in users[user]:
+        users[user]["chat_history"] = []
+        
     users[user]["chat_history"].append({"role": "user", "content": question})
     users[user]["chat_history"].append({"role": "assistant", "content": answer})
 
@@ -1266,7 +1325,10 @@ def voice_ai():
     if not user:
         return jsonify({"answer": "Login first"})
 
-    audio = request.files["audio"]
+    audio = request.files.get("audio")
+
+    if not audio:
+        return jsonify({"answer": "No audio uploaded"})
 
     import uuid
     import os
@@ -1319,6 +1381,7 @@ Severity: {data['percentage']}%
     users[user]["chat_history"].append({"type": "audio", "url": "/" + filename})
 
     users[user]["chat_history"].append({"type": "ai", "text": answer})
+    save_users()
 
     return jsonify({"answer": answer, "audio_url": "/" + filename})
 
@@ -1363,6 +1426,8 @@ def download_pdf():
         return redirect(url_for("login"))
 
     data = users[user]["last_result"]
+    if not data:    
+        return redirect(url_for("index"))
     title = get_text("التقرير", "Report")
     diagnosis_title = get_text("التشخيص", "Diagnosis")
     eye_title = get_text("التواصل البصري", "Eye Contact")
@@ -1398,6 +1463,8 @@ def result():
         return redirect(url_for("login"))
 
     data = users[user]["last_result"]
+    if not data:
+        return redirect(url_for("index"))
     lang = session.get("lang", "en")  # 🔥 مهم
     diagnosis_map = {
         "Autism": get_text("توحد", "Autism"),
@@ -1481,7 +1548,14 @@ def result():
         category_names=category_names,
     )
 
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("404.html"), 404
 
+
+@app.errorhandler(500)
+def server_error(e):
+    return render_template("500.html"), 500
 # ---------------- START ----------------
 load_users()
 
