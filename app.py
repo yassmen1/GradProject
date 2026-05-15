@@ -121,12 +121,36 @@ HIGH_MIC_LIMIT = 5
 
 # 🔥 cooldown لكل alert
 last_alert_time = {}
-ALERT_COOLDOWN = 10
-
+ALERT_COOLDOWN = 20
+last_sent_state = ""
+active_alerts = set()
 
 def analyze_sensor(hr, acc, mic):
-    global low_hr_counter, high_acc_counter, high_mic_counter
 
+    global low_hr_counter, high_acc_counter, high_mic_counter
+    # 📈 HR TREND ANALYSIS
+    recent_hr = [
+    x["hr"]
+    for x in sensor_history[-8:]
+    if x["hr"] > 50 and x["hr"] < 180
+]
+    hr_rising_fast = False
+
+    if len(recent_hr) >= 5:
+
+        # متوسط أول قراءتين
+        avg_old = sum(recent_hr[:2]) / 2
+
+        # متوسط آخر قراءتين
+        avg_new = sum(recent_hr[-2:]) / 2
+
+        hr_change = avg_new - avg_old
+        print("HR CHANGE:", hr_change)
+        print("RECENT HR:", recent_hr)
+
+        # 🔥 لو HR زاد فجأة
+        if hr_change > 10:
+            hr_rising_fast = True
     alerts = []
 
     # ❤️ LOW HR
@@ -139,6 +163,10 @@ def analyze_sensor(hr, acc, mic):
         alerts.append("LOW_HR")
         low_hr_counter = 0
 
+    # 🚨 SMART MELTDOWN
+    if hr_rising_fast and acc > 13 and mic > 5:
+        alerts.append("MELTDOWN")
+
     # 🏃 MOVEMENT
     if acc > 15:
         high_acc_counter += 1
@@ -150,7 +178,7 @@ def analyze_sensor(hr, acc, mic):
         high_acc_counter = 0
 
     # 🔊 MIC
-    if mic > 70:
+    if mic > 8:
         high_mic_counter += 1
     else:
         high_mic_counter = 0
@@ -158,15 +186,12 @@ def analyze_sensor(hr, acc, mic):
     if high_mic_counter >= HIGH_MIC_LIMIT:
         alerts.append("LOUD_MIC")
         high_mic_counter = 0
-    # 🔥 SMART COMBINED ALERTS
 
-    # 🧠 Stress (نبض + صوت)
-    if hr > 130 and mic > 70:
+    
+    # 🧠 SMART STRESS DETECTION
+    if hr_rising_fast and mic > 5:
         alerts.append("STRESS")
 
-    # 🚨 Meltdown (حركة + صوت)
-    if acc > 15 and mic > 70:
-        alerts.append("MELTDOWN")
     return alerts
 
 
@@ -192,17 +217,22 @@ def predict_future():
 
 
 def predict_state(hr, acc, mic):
-    if hr < 90 and acc < 12 and mic < 10:
-        return "Calm"
 
-    if acc > 12 and mic > 20:
-        return "Active"
+    # 🔴 Meltdown
+    if acc > 15 and mic > 8 and hr > 100:
+        return "Meltdown"
 
-    if hr > 120 and mic > 60:
+    # 🟠 Stress
+    if hr > 95 and mic >= 5:
         return "Stress"
 
-    if acc > 15 and mic > 70:
-        return "Meltdown"
+    # 🟡 Active
+    if acc >= 11 and acc < 14 and mic < 5:
+        return "Active"
+
+    # 🟢 Calm
+    if hr >= 60 and hr <= 95 and acc < 11 and mic < 3:
+        return "Calm"
 
     return "Normal"
 
@@ -220,7 +250,7 @@ def log_data(data):
 # ---------------- SENSOR API ----------------
 @app.route("/sensor", methods=["POST"])
 def sensor():
-    global sensor_data, sensor_history
+    global sensor_data, sensor_history, active_alerts, last_sent_state
 
     data = request.json
 
@@ -237,7 +267,21 @@ def sensor():
         sensor_history.pop(0)
 
     alerts = analyze_sensor(hr, acc, mic)
-    state = data.get("state", predict_state(hr, acc, mic))
+    # 🔥 تحديد الحالة بناءً على الـ alerts
+
+    state = "Normal"
+
+    if "MELTDOWN" in alerts:
+        state = "Meltdown"
+
+    elif "STRESS" in alerts:
+        state = "Stress"
+
+    elif "HIGH_ACC" in alerts:
+        state = "Active"
+
+    elif hr >= 60 and hr <= 95 and mic < 3:
+        state = "Calm"
 
     # 🧠 prediction جديد
     prediction = predict_future()
@@ -252,17 +296,25 @@ def sensor():
         "prediction": prediction,
     }
     log_data(sensor_data)
-    emergency_mode(alerts)
+    #emergency_mode(alerts)
 
     current_time = time.time()
 
-    for a in alerts:
-        if a not in last_alert_time:
-            last_alert_time[a] = 0
+    # أول مرة
+    if state not in last_alert_time:
+        last_alert_time[state] = 0
 
-        if current_time - last_alert_time[a] > ALERT_COOLDOWN:
-            send_alert(format_message(a), sensor_data)
-            last_alert_time[a] = current_time
+    # الحالات المهمة فقط
+    if state not in ["Normal", "Calm"]:
+
+        # لو عدى 30 ثانية
+        if current_time - last_alert_time[state] > 30:
+
+            alert_message = f"🚨 {state}"
+
+            send_alert(alert_message, sensor_data)
+
+            last_alert_time[state] = current_time
 
     return {"status": "ok"}
 
@@ -444,7 +496,7 @@ def dashboard():
         mic_text=get_text("الميكروفون", "Microphone"),
         freq_text=get_text("التردد", "Frequency"),
         # status
-        state_text=get_text("الحالة الحالية", "Current State"),
+        state_text=get_text("الحالة الحالية", "Current Stat"),
         prediction_text=get_text("التوقع", "Prediction"),
         # alerts
         no_alerts=get_text("لا يوجد تنبيهات", "No alerts"),

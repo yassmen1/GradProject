@@ -414,17 +414,21 @@ lastAlerts = currentAlerts;
 alertsDiv.innerHTML = "";
 
 if(data.alerts && data.alerts.length > 0){
-    // 🔥 تحويل الكود لكلام مفهوم
-    if(a === "HIGH_ACC") a = "⚠️ Child moving too much";
-    if(a === "LOUD_MIC") a = "⚠️ Loud crying";
-    if(a === "LOW_HR") a = "⚠️ Low heart rate";
-    if(a === "STRESS") a = "😟 Child under stress";
-    if(a === "MELTDOWN") a = "🚨 Possible meltdown";
 
-    data.alerts.forEach(a=>{
+    alertsDiv.innerHTML = "";
+
+    data.alerts.forEach(a => {
+
+        // 🔥 تحويل الكود لكلام مفهوم
+        if(a === "HIGH_ACC") a = "⚠️ Child moving too much";
+        if(a === "LOUD_MIC") a = "⚠️ Loud crying";
+        if(a === "LOW_HR") a = "⚠️ Low heart rate";
+        if(a === "STRESS") a = "😟 Child under stress";
+        if(a === "MELTDOWN") a = "🚨 Possible meltdown";
+
         alertsDiv.innerHTML += `
             <div class="alert-box danger">
-                🚨 ${a}
+                ${a}
             </div>
         `;
     });
@@ -455,7 +459,7 @@ setInterval(updateData, 1000);
 let chart;
 
 function loadChart() {
-    fetch("/history")
+    fetch("/sensor_history")
     .then(res => res.json())
     .then(data => {
 
