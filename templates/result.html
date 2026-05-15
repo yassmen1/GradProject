@@ -244,7 +244,7 @@ body {
 <div class="navbar">
 
     <div class="logo">
-        🧠 Autism System
+       🧠 {{ get_text("نظام التوحد", "Autism System") }}
     </div>
 
     <div class="nav-right">
@@ -307,7 +307,19 @@ body {
             {% endif %}
         ">
             <h3>{{ emotion_text }}</h3>
-            <h2>{{ emotion }}</h2>
+            <h2>{% if emotion == "joy" %}
+                {{ get_text("سعادة", "Joy") }}
+
+                {% elif emotion == "fear" %}
+                {{ get_text("خوف", "Fear") }}
+
+                {% elif emotion == "anger" %}
+                {{ get_text("غضب", "Anger") }}
+
+                {% else %}
+                {{ get_text("طبيعى", "Neutral") }}
+                {% endif %}
+            </h2>
 
             <div class="progress">
                 <div class="progress-fill" style="width:100%; background:#ff9800;"></div>
@@ -315,13 +327,13 @@ body {
 
             <p class="status">
              {% if emotion == "joy" %}
-                {{ status_positive }} 😊
+                {{ status_positive }} 
              {% elif emotion == "neutral" %}
-                {{ status_calm }} 😐
+                {{ status_calm }}
              {% elif emotion == "anger" %}
-                {{ status_distress }} 😡
+                {{ status_distress }}
              {% elif emotion == "fear" %}
-                {{ status_anxiety }} 😨
+                {{ status_anxiety }}
              {% endif %}
             </p>
         </div>
@@ -405,7 +417,7 @@ body {
     <span class="emoji">📊</span> {{ monitor_text }}
 </a>
 <a href="/history" class="btn history">
-    📜 History
+    📜 {{ get_text("السجل", "History") }}
 </a>
             </div>
 
@@ -424,28 +436,62 @@ body {
 
             <div class="box">
                 <b>{{ cars_interpret }}</b><br><br>
-                {{ normal_text }} → 30–15<br>
-                {{ mild_text }} → 36.5–30<br>
-                {{ severe_text }} → 60–37
+
+                {% if lang == "ar" %}
+
+                {{ normal_text }} ← 15%-30%<br>
+                {{ mild_text }} ← 30%-36.5%<br>
+                {{ severe_text }} ← 37%-60%%
+
+                {% else %}
+
+                {{ normal_text }} → 15%-30%<br>
+                {{ mild_text }} → 30%-36.5%<br>
+                {{ severe_text }} → 37%-60%%
+
+                {% endif %}
             </div>
+
             <!-- 👁️ Eye Contact -->
             <div class="box">
-                    <b>{{ eye_interpret }}</b><br><br>
+                <b>{{ eye_interpret }}</b><br><br>
 
-                    {{ status_good }} → 100%-70<br>
-                    {{ status_moderate }} → 69%-50<br>
-                    {{ status_weak }} → 49%-30<br>
-                    {{ status_very_low }} → 29%-0
+                {% if lang == "ar" %}
+
+                {{ status_good }} ← 70%-100%<br>
+                {{ status_moderate }} ← 50%-69<br>
+                {{ status_weak }} ← 30%-49%<br>
+                {{ status_very_low }} ← 0%-29%%
+
+                {% else %}
+
+                {{ status_good }} → 70%-100%<br>
+                {{ status_moderate }} → 50%-69%<br>
+                {{ status_weak }} → 30%-49%<br>
+                {{ status_very_low }} → 0%-29%%
+
+                {% endif %}
             </div>
 
-<!-- 🧠 Autism Indicators -->
+            <!-- 🧠 Autism Indicators -->
             <div class="box">
                 <b>{{ autism_interpret }}</b><br><br>
 
-                {{ normal_text }} → 25%-0<br>
-                {{ mild_text }} → 50%-26<br>
-                {{ moderate_text }} → 75%-51<br>
-                {{ status_high }} → 100%-76
+                {% if lang == "ar" %}
+
+                {{ normal_text }} ← 0%-25%<br>
+                {{ mild_text }} ← 26%-50%<br>
+                {{ moderate_text }} ← 51%-75%<br>
+                {{ status_high }} ← 76%-100%
+
+                {% else %}
+
+                {{ normal_text }} → 0%-25%<br>
+                {{ mild_text }} → 26%-50%<br>
+                {{ moderate_text }} → 51%-75%<br>
+                {{ status_high }} → 76%-100%
+
+                {% endif %}
             </div>
             <div style="margin-top:30px; text-align:center;">
 
@@ -460,7 +506,7 @@ body {
     width:100%;
     box-shadow:0 10px 25px rgba(139,92,246,0.3);
     ">
-        🔄 Start Reassessment
+        🔄 {{ get_text("إعادة التقييم", "Start Reassessment") }}
     </a>
 
 </div>

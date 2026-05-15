@@ -13,13 +13,14 @@ body {
 }
 
 .container {
-    width:600px;
+    width:680px;
     margin:auto;
-    margin-top:40px;
-    background:white;
+    margin-top:15px;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(12px);
     padding:20px;
     border-radius:20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow:0 15px 40px rgba(0,0,0,0.08);
 }
 
 /* 🔥 Logout */
@@ -201,7 +202,7 @@ button:hover {
 
 /* 💬 CHAT BOX */
 #chatBox{
-    height:320px;
+    height:380px;
     overflow-y:auto;
     background:#f8fafc;
     padding:15px;
@@ -385,17 +386,48 @@ button:hover{
 .nav-btn:hover{
     background:#7c3aed;
 }
+.page-nav{
+    width:100%;
+    max-width:600px;
+
+    margin:35px auto 15px;
+
+    display:flex;
+    gap:12px;
+
+    padding-left:10px;
+    box-sizing:border-box;
+}   
+
+.nav-btn{
+    text-decoration:none;
+    color:white;
+    padding:8px 18px;
+    border-radius:10px;
+    font-size:14px;
+    transition:0.3s;
+}
+
+.home-btn{
+    background:#6366f1;
+}
+
+.back-btn{
+    background:#64748b;
+}
+
+.nav-btn:hover{
+    transform:scale(1.05);
+}
 </style>
 
 </head>
 
 <body>
 
-<div class="container">
-
 <div class="navbar">
     <div class="nav-left">
-        🧠 Autism System
+       🧠 {{ get_text("نظام التوحد", "Autism System") }}
     </div>
 
     <div class="nav-right">
@@ -411,6 +443,18 @@ button:hover{
     <a href="/logout" class="logout">{{ logout_text }}</a>
     </div>
 </div>
+<div class="page-nav">
+
+    <a href="/result" class="nav-btn back-btn">
+        ⬅ {{ get_text("رجوع", "Back") }}
+    </a>
+
+    <a href="/" class="nav-btn home-btn">
+        🏠 {{ get_text("الرئيسية", "Home") }}
+    </a>
+
+</div>
+<div class="container">
 
 <!-- 📊 Info -->
 <div class="result-header">
@@ -443,7 +487,7 @@ button:hover{
 
 <!-- 💬 CHAT -->
 <div id="chatBox">
-
+    
     {% for msg in chat_history %}
 
     {% if msg.type == "audio" %}
@@ -492,15 +536,7 @@ button:hover{
 </div>
 
 </div>
-<div class="bottom-nav">
 
-    <a href="/" class="nav-btn">🏠 Home</a>
-
-    <a href="javascript:history.back()" class="nav-btn">
-        ⬅ Back
-    </a>
-
-</div>
 <script>
 let recorder;
 let audioChunks = [];

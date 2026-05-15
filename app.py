@@ -46,7 +46,10 @@ app.secret_key = "secret123"
 
 @app.context_processor
 def inject_user():
-    return dict(username=session.get("user"))
+    return dict(
+        username=session.get("user"),
+        get_text=get_text
+    )
 
 
 # ---------------- USERS ----------------
@@ -513,10 +516,14 @@ def assessment_history():
 
     assessments = users[user].get("assessments", [])
 
+    
+    lang = session.get("lang", "en")
+
     return render_template(
         "history.html",
         assessments=assessments,
         username=user,
+        lang=lang,  
         welcome_text=get_text("مرحبًا", "Welcome"),
         logout_text=get_text("تسجيل خروج", "Logout"),
     )
@@ -528,7 +535,13 @@ def continue_options():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    return render_template("continue.html")
+    return render_template(
+        "continue.html",
+        username=session["user"],
+        lang=session.get("lang", "en"),
+        welcome_text=get_text("مرحبًا", "Welcome"),
+        logout_text=get_text("تسجيل خروج", "Logout"),
+    )
 
 
 # ---------------- MEDIAPIPE ----------------
@@ -1132,6 +1145,7 @@ Mention:
 - recommendation
 
 Keep the response short and professional.
+Respond in Arabic if the system language is Arabic.
 """
 
             try:
