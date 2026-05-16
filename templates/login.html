@@ -1,303 +1,640 @@
 <!DOCTYPE html>
 <html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+
 <head>
+<meta charset="UTF-8">
 <title>Login</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 <style>
-
-body {
+/* RESET */
+*{
     margin:0;
-    font-family:'Segoe UI';
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+}
+
+body{
+    font-family:'Cairo', sans-serif;
+    background:#f9fafb;
+    overflow:hidden;
+}
+
+/* CONTAINER */
+.container{
+    display:flex;
+    width:100%;
     height:100vh;
-    display:flex;
-}
-
-/* 🟣 LEFT SIDE */
-.left {
-    flex:1;
-    background: linear-gradient(135deg,#e0e7ff,#fbcfe8);
-    padding:80px;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-}
-
-.left h1 {
-    font-size:50px;
-    margin-bottom:20px;
-}
-
-.gradient {
-    background: linear-gradient(to right,#2563eb,#9333ea);
-    -webkit-background-clip: text;
-    color: transparent;
-}
-
-.left p {
-    color:#555;
-    margin-bottom:30px;
-    font-size:18px;
-}
-
-/* FEATURES */
-.feature {
-    display:flex;
-    align-items:center;
-    margin:15px 0;
-    font-size:16px;
-}
-
-/* 🟦 RIGHT SIDE */
-.right {
-    flex:1;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:#f8fafc;
-}
-
-/* LOGIN CARD */
-.card {
-    width:350px;
-    padding:40px;
-    background:white;
-    border-radius:20px;
-    box-shadow:0 20px 50px rgba(0,0,0,0.1);
-    text-align:center;
-}
-
-.card h2 {
-    margin-bottom:10px;
-}
-
-.subtitle {
-    color:#777;
-    margin-bottom:20px;
-}
-
-/* INPUT */
-input {
-    width:100%;
-    padding:12px;
-    margin:10px 0;
-    border-radius:10px;
-    border:1px solid #ddd;
-}
-
-/* BUTTON */
-button {
-    width:100%;
-    padding:12px;
-    background: linear-gradient(to right,#2563eb,#4f46e5);
-    color:white;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    margin-top:10px;
-    transition:0.3s;
-}
-
-button:hover {
-    transform:scale(1.05);
-}
-
-/* LINK */
-a {
-    display:block;
-    margin-top:15px;
-    color:#1976d2;
-    text-decoration:none;
-}
-.card {
-    animation: fadeIn 0.6s ease;
-}
-
-@keyframes fadeIn {
-    from {opacity:0; transform:translateY(20px);}
-    to {opacity:1;}
-}
-.features {
-    margin-top:30px;
-}
-
-.feature-card {
-    display:flex;
-    align-items:center;
-    gap:15px;
-    margin:20px 0;
-}
-
-/* icon box */
-.icon {
-    width:50px;
-    height:50px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:22px;
-
-    background: rgba(255,255,255,0.6);
-    border-radius:15px;
-
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-}
-
-/* title */
-.feature-card h4 {
-    margin:0;
-    font-size:16px;
-}
-
-/* description */
-.feature-card p {
-    margin:3px 0 0;
-    font-size:14px;
-    color:#666;
-}
-body[dir="rtl"] {
-    direction: rtl;
-}
-
-body[dir="rtl"] .left {
-    text-align: right;
-}
-
-body[dir="rtl"] .feature-card {
-    flex-direction: row-reverse;
-}
-
-body[dir="rtl"] input {
-    text-align: right;
-}
-.top-bar {
-    position: absolute;
-    top:20px;
-    right:30px;
-    display:flex;
-    gap:10px;
-}
-
-.top-bar a {
-    background:#eee;
-    padding:6px 12px;
-    border-radius:8px;
-    text-decoration:none;
-    color:#333;
-    font-size:13px;
-}
-
-.top-bar a:hover {
-    background:#ddd;
-}
-body[dir="rtl"] .top-bar {
-    left:30px;
-    right:auto;
-}
-.password-box{
     position:relative;
 }
 
-.password-box input{
+/* LEFT SIDE */
+.left{
+    width:50%;
+    height:100vh;
+
+    background:linear-gradient(
+        135deg,
+        #eef2ff 0%,
+        #fdf2f8 100%
+    );
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+
+    position:relative;
+
+    padding:40px 70px;
+
+    overflow:hidden;
+}
+
+/* TITLE */
+.left h1{
+    font-size:62px;
+    font-weight:800;
+
+    line-height:1.15;
+
+    margin-bottom:18px;
+}
+
+/* GRADIENT */
+.gradient-text{
+    background:linear-gradient(90deg,#4facfe,#a855f7);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+/* DESCRIPTION */
+.left p{
+    color:#7c7c8a;
+
+    font-size:16px;
+
+    line-height:2;
+
+    max-width:560px;
+
+    margin-bottom:40px;
+}
+
+/* FEATURES */
+.features-wrapper{
+    width:100%;
+    max-width:520px;
+
+    
+
+    margin-left:auto;
+
+    padding-right:30px;
+    margin-top:5px;
+}
+
+.feature{
+    display:flex;
+    align-items:center;
+
+    gap:18px;
+
+    margin-bottom:55px;
+}
+
+.feature:last-child{
+    margin-bottom:0;
+}
+
+/* ICON */
+.icon{
+    width:82px;
+    height:82px;
+
+    min-width:82px;
+
+    border-radius:36px;
+
+    background:#ffffff;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:42px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.05);
+}
+
+/* TEXT */
+.feature-text{
+    display:flex;
+    flex-direction:column;
+
+    align-items:flex-start;
+
+    width:260px;
+}
+
+.feature-text b{
+    font-size:28px;
+    font-weight:800;
+
+    margin-bottom:6px;
+
+    color:#000;
+}
+
+.feature-text span{
+    font-size:16px;
+    line-height:1.9;
+
+    color:#8d8d98;
+}
+
+/* RIGHT SIDE */
+.right{
+    width:50%;
+    height:100vh;
+
+    background:#ffffff;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    padding:40px;
+}
+
+/* CARD */
+.card{
+    width:560px;
+
+    background:#fff;
+
+    padding:45px 48px;
+
+    border-radius:30px;
+
+    text-align:center;
+
+    box-shadow:0 20px 60px rgba(0,0,0,0.08);
+}
+
+/* CARD TITLE */
+.card h2{
+    font-size:64px;
+    margin-bottom:8px;
+    font-weight:800;
+}
+
+/* SUBTITLE */
+.subtitle{
+    color:#888;
+    margin-bottom:25px;
+    font-size:15px;
+}
+
+/* INPUT */
+input{
+    width:100%;
+    height:70px;
+
+    padding:0 18px;
+
+    margin:10px 0;
+
+    border-radius:14px;
+    border:1px solid #dcdfe4;
+
+    outline:none;
+
+    font-size:20px;
+
+    transition:.3s;
+}
+
+input:focus{
+    border-color:#8b5cf6;
+    box-shadow:0 0 0 4px rgba(139,92,246,.12);
+}
+
+input::placeholder{
+    color:#9ca3af;
+    font-size:14px;
+}
+
+/* BUTTON */
+button{
+    width:100%;
+    height:68px;
+
+    margin-top:15px;
+
+    background:linear-gradient(90deg,#22c55e,#16a34a);
+
+    color:white;
+
+    border:none;
+    border-radius:14px;
+
+    font-size:26px;
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:.3s;
+}
+
+button:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 25px rgba(34,197,94,0.28);
+}
+
+/* LOGIN TEXT */
+.login-text{
+    text-align:center;
+
+    font-size:15px;
+
+    color:#666;
+
+    line-height:1.8;
+
+    margin-top:20px;
+}
+
+/* LINKS */
+a{
+    color:#3b82f6;
+    text-decoration:none;
+    font-weight:700;
+}
+
+/* CENTER LINE */
+.container::after{
+    content:"";
+
+    position:absolute;
+
+    left:50%;
+    top:0;
+
+    width:1px;
+    height:100%;
+
+    background:#ececec;
+}
+
+/* TOP BAR */
+.top-bar{
+    position:absolute;
+
+    top:20px;
+    right:30px;
+
+    display:flex;
+    gap:10px;
+
+    z-index:999;
+}
+
+.top-bar a{
+    background:#fff;
+
+    padding:7px 13px;
+
+    border-radius:10px;
+
+    text-decoration:none;
+
+    color:#333;
+
+    font-size:13px;
+    font-weight:700;
+
+    box-shadow:0 4px 12px rgba(0,0,0,0.05);
+
+    transition:.3s;
+}
+
+.top-bar a:hover{
+    background:#f3f4f6;
+}
+
+/* PASSWORD */
+.password-wrapper{
+    position:relative;
     width:100%;
 }
 
 .toggle-password{
     position:absolute;
-    right:15px;
+
     top:50%;
     transform:translateY(-50%);
-    cursor:pointer;
+
+    width:20px;
+    height:20px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
     color:#666;
-    font-size:18px;
+
+    cursor:pointer;
+
+    z-index:10;
+}
+
+/* RTL */
+html[dir="rtl"] input{
+    text-align:right;
+}
+
+html[dir="rtl"] .card{
+    text-align:right;
+}
+
+html[dir="rtl"] .feature{
+    flex-direction:row-reverse;
+    justify-content:flex-start;
+}
+
+html[dir="rtl"] .feature-text{
+    text-align:right;
+    align-items:flex-start;
+}
+
+html[dir="rtl"] .toggle-password{
+    left:15px;
+    right:auto;
+}
+
+html[dir="rtl"] .password-wrapper input{
+    padding-left:45px;
+    padding-right:15px;
+}
+
+/* LTR */
+html[dir="ltr"] .left{
+    align-items:flex-start;
+}
+
+html[dir="ltr"] .left h1,
+html[dir="ltr"] .left p{
+    text-align:left;
+}
+
+html[dir="ltr"] .features-wrapper{
+    margin-left:0;
+
+    padding-left:40px;
+    padding-right:0;
+}
+
+/* ENGLISH */
+html[dir="ltr"] .feature{
+    flex-direction:row-reverse;
+    justify-content:flex-end;
+}
+
+html[dir="ltr"] .feature-text{
+    text-align:left;
+    align-items:flex-start;
+}
+
+html[dir="ltr"] .toggle-password{
+    right:15px;
+    left:auto;
+}
+
+html[dir="ltr"] .password-wrapper input{
+    padding-right:45px;
+    padding-left:15px;
+}
+
+/* MOBILE */
+@media(max-width:992px){
+
+    body{
+        overflow:auto;
+    }
+
+    .container{
+        flex-direction:column;
+        height:auto;
+    }
+
+    .left,
+    .right{
+        width:100%;
+        height:auto;
+    }
+
+    .left{
+        padding:60px 30px;
+    }
+
+    .left h1{
+        font-size:42px;
+        text-align:center;
+    }
+
+    .left p{
+        text-align:center;
+    }
+
+    .features-wrapper{
+        max-width:100%;
+        padding-right:0;
+        padding-left:0;
+    }
+
+    .right{
+        padding:40px 20px;
+    }
+
+    .card{
+        width:100%;
+    }
+
+    .container::after{
+        display:none;
+    }
 }
 </style>
 </head>
 
 <body>
+
 <div class="top-bar">
-    <a href="/set_lang/en">EN</a>
     <a href="/set_lang/ar">AR</a>
-</div>
-<!-- LEFT -->
-<div class="left">
-
-    <h1>
-        {{ title_main_line1 }} <br>
-        <span class="gradient">{{ title_main_line2 }}</span>
-    </h1>
-
-    <p>{{ description }}</p>
-
-    <div class="features">
-
-    <div class="feature-card">
-        <div class="icon">🚀</div>
-        <div>
-            <h4>{{ f1_title }}</h4>
-            <p>{{ f1_desc }}</p>
-        </div>
-    </div>
-
-    <div class="feature-card">
-        <div class="icon">📊</div>
-        <div>
-            <h4>{{ f2_title }}</h4>
-            <p>{{ f2_desc }}</p>
-        </div>
-    </div>
-
-    <div class="feature-card">
-        <div class="icon">🧠</div>
-        <div>
-            <h4>{{ f3_title }}</h4>
-            <p>{{ f3_desc }}</p>
-        </div>
-    </div>
-
+    <a href="/set_lang/en">EN</a>
 </div>
 
-</div>
+<div class="container">
 
-<!-- RIGHT -->
-<div class="right">
+    <!-- LEFT SIDE -->
+    <div class="left">
 
-    <div class="card">
+        <h1>
+            {% if lang == "ar" %}
+                مرحبًا بعودتك <span class="gradient-text">👋</span>
+            {% else %}
+                Welcome Back <span class="gradient-text">👋</span>
+            {% endif %}
+        </h1>
 
-        <h2>{{ login_title }} 🧠</h2>
-        <p class="subtitle">{{ subtitle }}</p>
-
-        <form method="post">
-            <input name="username" placeholder="👤 {{ username_text }}" required>
-            <div class="password-box">
-
-            <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="🔒 {{ password_text }}"
-                required
-            >
-
-            <span class="toggle-password" onclick="togglePassword()">
-
-                <i id="eyeIcon" class="fa-solid fa-eye"></i>
-
-            </span>
-
-        </div>
-            <button type="submit">{{ btn_text or 'Login' }}</button>
-        </form>
-        {% if error %}
-        <p style="color:red; margin-top:10px;">
-            {{ error }}
+        <p>
+            {% if lang == "ar" %}
+                سجل الدخول للوصول إلى التحليلات الذكية ومتابعة حالة طفلك بسهولة.
+            {% else %}
+                Login to access smart analytics and monitor your child easily.
+            {% endif %}
         </p>
-        {% endif %}
-        <a href="/register">{{ register_text }}</a>
+
+        <div class="features-wrapper">
+
+            <!-- FEATURE 1 -->
+            <div class="feature">
+
+                <div class="feature-text">
+
+                    <b>
+                        {{ "مراقبة فورية" if lang == "ar" else "Real-time monitoring" }}
+                    </b>
+
+                    <span>
+                        {{ "تتبع مباشر وتنبيهات فورية" if lang == "ar" else "Live tracking and instant alerts" }}
+                    </span>
+
+                </div>
+
+                <div class="icon">🚀</div>
+
+            </div>
+
+            <!-- FEATURE 2 -->
+            <div class="feature">
+
+                <div class="feature-text">
+
+                    <b>
+                        {{ "تحليلات ذكية" if lang == "ar" else "Smart analytics" }}
+                    </b>
+
+                    <span>
+                        {{ "رؤى بالذكاء الاصطناعي وتقارير متقدمة" if lang == "ar" else "AI insights and advanced reports" }}
+                    </span>
+
+                </div>
+
+                <div class="icon">📊</div>
+
+            </div>
+
+            <!-- FEATURE 3 -->
+            <div class="feature">
+
+                <div class="feature-text">
+
+                    <b>
+                        {{ "تشخيص ذكي" if lang == "ar" else "AI diagnosis" }}
+                    </b>
+
+                    <span>
+                        {{ "تقييم ذكي وتوقعات دقيقة" if lang == "ar" else "Intelligent assessment and predictions" }}
+                    </span>
+
+                </div>
+
+                <div class="icon">🧠</div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="right">
+
+        <div class="card">
+
+            <h2>
+                {{ "تسجيل الدخول" if lang == "ar" else "Login" }}
+            </h2>
+
+            <p class="subtitle">
+                {{ "سجل الدخول للمتابعة" if lang == "ar" else "Sign in to continue" }}
+            </p>
+
+            {% if error %}
+            <p class="error-message">
+                {{ error }}
+            </p>
+            {% endif %}
+
+            <form method="POST">
+
+                <input
+                    type="text"
+                    name="username"
+                    placeholder="{{ 'اسم المستخدم' if lang == 'ar' else 'Username' }}"
+                    required
+                >
+
+                <div class="password-wrapper">
+
+                    <span class="toggle-password" onclick="togglePassword()">
+                        <i id="eyeIcon" class="fa-solid fa-eye"></i>
+                    </span>
+
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        placeholder="{{ 'كلمة المرور' if lang == 'ar' else 'Password' }}"
+                        required
+                    >
+
+                </div>
+
+                <button>
+                    {{ "دخول" if lang == "ar" else "Login" }}
+                </button>
+
+            </form>
+
+            <p class="login-text">
+
+                {{ "ليس لديك حساب؟" if lang == "ar" else "Don't have an account?" }}
+
+                <a href="/register">
+                    {{ "إنشاء حساب" if lang == "ar" else "Register" }}
+                </a>
+
+            </p>
+
+        </div>
 
     </div>
 
 </div>
+
 <script>
 
 function togglePassword(){
@@ -326,5 +663,6 @@ function togglePassword(){
 }
 
 </script>
+
 </body>
 </html>

@@ -518,19 +518,34 @@ def assessment_history():
 
     assessments = users[user].get("assessments", [])
 
-    
     lang = session.get("lang", "en")
+
+    diagnosis_map = {
+        "Autism": get_text("توحد", "Autism"),
+        "Delay": get_text("تأخر نمائي", "Delay"),
+        "Normal": get_text("طبيعي", "Normal"),
+        "Mild": get_text("بسيط", "Mild"),
+        "Moderate": get_text("متوسط", "Moderate"),
+        "Severe": get_text("شديد", "Severe"),
+    }
+
+    for a in assessments:
+
+        diagnosis_value = a.get("diagnosis", "")
+
+        a["diagnosis"] = diagnosis_map.get(
+            diagnosis_value,
+            diagnosis_value
+        )
 
     return render_template(
         "history.html",
         assessments=assessments,
         username=user,
-        lang=lang,  
+        lang=lang,
         welcome_text=get_text("مرحبًا", "Welcome"),
         logout_text=get_text("تسجيل خروج", "Logout"),
     )
-
-
 @app.route("/continue")
 def continue_options():
 
@@ -1398,24 +1413,43 @@ def specialist():
     if not data:
         return redirect(url_for("index"))
     lang = session.get("lang", "en")
+    
+    diagnosis_map = {
+    "Autism": get_text("توحد", "Autism"),
+    "Delay": get_text("تأخر نمائي", "Delay"),
+    "Normal": get_text("طبيعي", "Normal"),
+    "Mild": get_text("بسيط", "Mild"),
+    "Moderate": get_text("متوسط", "Moderate"),
+    "Severe": get_text("شديد", "Severe"),
+    }
 
-    return render_template(
-        "specialist.html",
-        username=user,
-        lang=lang,
-        chat_history=chat,
-        **data,
-        # 🔥 ترجمة
-        autism_text=get_text("توحد", "Autism"),
-        title=get_text("المتخصص", "Specialist"),
-        send_text=get_text("إرسال", "Send"),
-        welcome_text=get_text("مرحبًا", "Welcome"),
-        logout_text=get_text("تسجيل خروج", "Logout"),
-        severity_text=get_text("شدة الحالة", "Severity"),
-        eye_text=get_text("التواصل البصري", "Eye Contact"),
-        placeholder_text=get_text("اكتب رسالتك...", "Type your message..."),
-        typing_text=get_text("يكتب...", "Typing..."),
+    diagnosis = diagnosis_map.get(
+        data["diagnosis"],
+        data["diagnosis"]
     )
+    return render_template(
+    "specialist.html",
+    username=user,
+    lang=lang,
+    chat_history=chat,
+
+    percentage=data["percentage"],
+    eye_percent=data["eye_percent"],
+    emotion=data["emotion"],
+    categories=data["categories"],
+
+    autism_text=get_text("توحد", "Autism"),
+    title=get_text("المتخصص", "Specialist"),
+    send_text=get_text("إرسال", "Send"),
+    welcome_text=get_text("مرحبًا", "Welcome"),
+    logout_text=get_text("تسجيل خروج", "Logout"),
+    severity_text=get_text("شدة الحالة", "Severity"),
+    eye_text=get_text("التواصل البصري", "Eye Contact"),
+    placeholder_text=get_text("اكتب رسالتك...", "Type your message..."),
+    typing_text=get_text("يكتب...", "Typing..."),
+
+    diagnosis=diagnosis,
+)
 
 
 # 🔥 PDF
@@ -1472,6 +1506,8 @@ def result():
         "Mild": get_text("بسيط", "Mild"),
         "Moderate": get_text("متوسط", "Moderate"),
         "Severe": get_text("شديد", "Severe"),
+        "Severe": get_text("شديد", "Severe"),"Delay": get_text(" تأخر في النمو", "Delay"),
+        
     }
     category_names = {
         "Relating": get_text("التفاعل", "Relating"),
