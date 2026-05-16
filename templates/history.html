@@ -246,7 +246,7 @@ box-shadow:0 10px 25px rgba(0,0,0,0.08);
 ">
 
 <h2 style="margin-bottom:20px;">
-📈 {{ get_text("التطور الزمني", "Progress Timeline") }}
+📈 {{ get_text("مخطط التقدم", "Progress Timeline") }}
 </h2>
 
 <div style="height:300px;">
@@ -263,7 +263,31 @@ box-shadow:0 10px 25px rgba(0,0,0,0.08);
 
             <div class="top">
 
-                <h3>{{ a.diagnosis }}</h3>
+               <h3>
+
+                {% if a.diagnosis == "Autism" %}
+                    {{ get_text("توحد", "Autism") }}
+
+                {% elif a.diagnosis == "Delay" %}
+                    {{ get_text("تأخر نمائي", "Delay") }}
+
+                {% elif a.diagnosis == "Normal" %}
+                    {{ get_text("طبيعي", "Normal") }}
+
+                {% elif a.diagnosis == "Mild" %}
+                    {{ get_text("بسيط", "Mild") }}
+
+                {% elif a.diagnosis == "Moderate" %}
+                    {{ get_text("متوسط", "Moderate") }}
+
+                {% elif a.diagnosis == "Severe" %}
+                    {{ get_text("شديد", "Severe") }}
+
+                {% else %}
+                    {{ a.diagnosis }}
+                {% endif %}
+
+                </h3>
 
                 <div class="date">
                     {{ a.date }}
@@ -339,7 +363,7 @@ color:#555;
 </div>
 
 {% endif %}
-{% if a.ai_analysis %}
+{% if a.ai_analysis_ar or a.ai_analysis_en or a.ai_analysis %}
 
 <div style="
 margin-top:20px;
@@ -353,9 +377,16 @@ color:#333;
 
 
 <p style="margin-top:10px;">
-{{ a.ai_analysis }}
-</p>
+{% if lang == "ar" %}
 
+    {{ a.ai_analysis_ar or a.ai_analysis }}
+
+{% else %}
+
+    {{ a.ai_analysis_en or a.ai_analysis }}
+
+{% endif %}
+</p>
 </div>
 
 {% endif %}

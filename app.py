@@ -520,24 +520,7 @@ def assessment_history():
 
     lang = session.get("lang", "en")
 
-    diagnosis_map = {
-        "Autism": get_text("توحد", "Autism"),
-        "Delay": get_text("تأخر نمائي", "Delay"),
-        "Normal": get_text("طبيعي", "Normal"),
-        "Mild": get_text("بسيط", "Mild"),
-        "Moderate": get_text("متوسط", "Moderate"),
-        "Severe": get_text("شديد", "Severe"),
-    }
-
-    for a in assessments:
-
-        diagnosis_value = a.get("diagnosis", "")
-
-        a["diagnosis"] = diagnosis_map.get(
-            diagnosis_value,
-            diagnosis_value
-        )
-
+   
     return render_template(
         "history.html",
         assessments=assessments,
@@ -1186,7 +1169,8 @@ def eye_test():
         }
 
         # 🔥 AI comparison
-        analysis_text = ""
+        analysis_text_ar = ""
+        analysis_text_en = ""
 
         old_assessments = users[user].get("assessments", [])
 
@@ -1194,32 +1178,73 @@ def eye_test():
 
             prev = old_assessments[-1]
 
-            prompt = f"""
-Previous assessment:
-Autism indicators: {prev['percentage']}%
-Eye contact: {prev['eye_percent']}%
-Emotion: {prev['emotion']}
+            # 🔥 Arabic Prompt
+            prompt_ar = f"""
+        التقييم السابق:
+        مؤشرات التوحد: {prev['percentage']}%
+        التواصل البصري: {prev['eye_percent']}%
+        المشاعر: {prev['emotion']}
 
-Current assessment:
-Autism indicators: {percent}%
-Eye contact: {eye}%
-Emotion: {emotion}
+        التقييم الحالي:
+        مؤشرات التوحد: {percent}%
+        التواصل البصري: {eye}%
+        المشاعر: {emotion}
 
-Analyze the child's progress briefly like an autism specialist.
+        حلل تطور حالة الطفل كمختص توحد بشكل مختصر واحترافي.
 
-Mention:
-- improvement or decline
-- eye contact changes
-- emotional changes
-- recommendation
+        اذكر:
+        - هل يوجد تحسن أو تدهور
+        - تغيرات التواصل البصري
+        - التغيرات العاطفية
+        - توصية مناسبة
 
-Keep the response short and professional.
-Respond in Arabic if the system language is Arabic.
-"""
+        اجعل الرد قصير ومنظم.
+        """
+
+            # 🔥 English Prompt
+            prompt_en = f"""
+        Previous assessment:
+        Autism indicators: {prev['percentage']}%
+        Eye contact: {prev['eye_percent']}%
+        Emotion: {prev['emotion']}
+
+        Current assessment:
+        Autism indicators: {percent}%
+        Eye contact: {eye}%
+        Emotion: {emotion}
+
+        Analyze the child's progress briefly like an autism specialist.
+
+        Mention:
+        - improvement or decline
+        - eye contact changes
+        - emotional changes
+        - recommendation
+
+        Keep the response short and professional.
+        """
 
             try:
 
-                ai_response = client.chat.completions.create(
+                # 🔥 Arabic Analysis
+                ai_response_ar = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "أنت متخصص في التوحد.",
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt_ar,
+                        },
+                    ],
+                )
+
+                analysis_text_ar = ai_response_ar.choices[0].message.content
+
+                # 🔥 English Analysis
+                ai_response_en = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
                         {
@@ -1228,21 +1253,23 @@ Respond in Arabic if the system language is Arabic.
                         },
                         {
                             "role": "user",
-                            "content": prompt,
+                            "content": prompt_en,
                         },
                     ],
                 )
 
-                analysis_text = ai_response.choices[0].message.content
+                analysis_text_en = ai_response_en.choices[0].message.content
 
             except Exception as e:
 
                 print("AI ERROR:", e)
 
-                analysis_text = "AI analysis unavailable."
+                analysis_text_ar = "تعذر إنشاء التحليل."
+                analysis_text_en = "AI analysis unavailable."
 
         # 🔥 save AI analysis
-        new_assessment["ai_analysis"] = analysis_text
+        new_assessment["ai_analysis_ar"] = analysis_text_ar
+        new_assessment["ai_analysis_en"] = analysis_text_en
 
         # 🔥 save assessment
         users[user].setdefault("assessments", [])
